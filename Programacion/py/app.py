@@ -67,7 +67,15 @@ app.jinja_loader.searchpath.extend([LOGIN_DIR, PROFILE_DIR])
 # Página principal
 @app.route('/')
 def principal():
-    return render_template('Principal.html')
+    # Obtén los productos y noticias desde Firebase. Ajusta las rutas según tu BD.
+    productos_snapshot = database.child("productos").get()
+    noticias_snapshot = database.child("noticias").get()
+
+    # Convierte a lista si es necesario (puedes ajustar según cómo retorne Firebase)
+    productos = list(productos_snapshot.values()) if productos_snapshot else None
+    noticias = list(noticias_snapshot.values()) if noticias_snapshot else None
+
+    return render_template('Principal.html', productos=productos, noticias=noticias)
 
 # Página de login
 @app.route('/login')
@@ -92,7 +100,7 @@ def registrar_usuario():
         return "No se pudo conectar a Realtime Database", 500
     data = request.form
     email = data.get('email')
-    nombre = data.get('nombre')
+    nombre = data.get('nombre')  # Asume que el valor ya es una cadena
     password = data.get('password')
     if not email or not nombre or not password:
         return "❌ Debes ingresar todos los campos obligatorios.", 400
@@ -231,6 +239,25 @@ def subir_foto():
     session["user"]["foto"] = nueva_url
     return redirect(url_for('principal'))
 
+@app.route('/update_user', methods=['POST'])
+def update_user():
+    if "user" not in session:
+        return redirect(url_for('login'))
+    data = request.form
+    nuevo_nombre = data.get('nombre')
+    nueva_ubicacion = data.get('ubicacion')
+    email_key = session["user"]["email"].replace('.', '_')
+    usuario_ref = database.child("usuarios").child(email_key)
+    updates = {}
+    if nuevo_nombre:
+        updates["nombre"] = nuevo_nombre
+    if nueva_ubicacion:
+        updates["ubicacion"] = nueva_ubicacion
+    if updates:
+        usuario_ref.update(updates)
+        session["user"].update(updates)
+    return redirect(url_for('configurar_foto'))
+
 # --------------------------------------------------------------------
 # Funciones para iniciar el servidor en segundo plano (opcional)
 # --------------------------------------------------------------------
@@ -244,7 +271,6 @@ def iniciar_servidor_en_segundo_plano():
     print("\n🚀🔥 ¡El servidor Flask se está iniciando en segundo plano! 🔥🚀")
     server_thread = threading.Thread(target=lambda: app.run(debug=True, use_reloader=False), daemon=True)
     server_thread.start()
-    time.sleep(2)
     print("   Accede a http://127.0.0.1:5000/ para ver la aplicación.\n")
 
 def submenu_servidor():
