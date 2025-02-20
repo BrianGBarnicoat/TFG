@@ -1,0 +1,22 @@
+<!-- Al final, antes de la etiqueta </body>, se añade el siguiente script -->
+<script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+<script>
+  // Se sobrescribe el submit del formulario de inicio para usar Firebase
+  const signInForm = document.querySelector('.sign-in-form');
+  signInForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Se obtienen email y password
+    const email = signInForm.querySelector('input[name="email"]').value;
+    const password = signInForm.querySelector('input[name="password"]').value;
+    // Función de autenticación con Firebase (definida en firebase-config.js)
+    firebaseSignIn(email, password)
+      .then(user => {
+        // Aquí se asume que user.photoURL contiene la foto obtenida de Firebase
+        // Se redirige a la página principal; el servidor usará el valor de la foto en la sesión
+        window.location.href = "{{ url_for('principal') }}";
+      })
+      .catch(error => {
+        alert('Error al iniciar sesión: ' + error.message);
+      });
+  });
+</script>

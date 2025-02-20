@@ -107,9 +107,25 @@
       margin-top: 10px;
       font-weight: bold;
     }
+    .fancy-btn {
+      background: #007bff; color: #fff; border: none; padding: 10px 20px; border-radius: 6px;
+      cursor: pointer; transition: 0.3s; font-weight: bold;
+    }
+    .fancy-btn:hover {
+      background: #0056b3; transform: scale(1.05);
+    }
+    .toggle-btn {
+      margin-top: 10px; cursor: pointer; background: #333; color: #fff; border: none;
+      padding: 10px 20px; border-radius: 6px; font-weight: bold; transition: 0.3s;
+    }
+    .toggle-btn:hover {
+      background: #222; transform: scale(1.05);
+    }
+    .light-mode { background: #fff; color: #000; }
+    .dark-mode  { background: #111; color: #eee; }
   </style>
 </head>
-<body>
+<body class="light-mode">
 
 <!-- TOP BAR -->
 <div class="top-bar">
@@ -153,6 +169,20 @@
     </button>
     <p id="statusMessage" class="status">Estado: Esperando acción...</p>
   </div>
+
+  <!-- Datos del Usuario -->
+  <div class="config-section">
+    <h2>Datos del Usuario</h2>
+    <form>
+      <!-- Comentario: Aquí puedes agregar más campos para editar nombre, ubicación, etc. -->
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" name="nombre">
+      <label for="ubicacion">Ubicación:</label>
+      <input type="text" id="ubicacion" name="ubicacion">
+      <button class="fancy-btn">Guardar cambios</button>
+    </form>
+  </div>
+  <button class="toggle-btn" onclick="toggleMode()">Cambiar modo claro/oscuro</button>
 </div>
 
 <script>
@@ -187,6 +217,11 @@
       });
     });
   });
+
+  function toggleMode(){
+    document.body.classList.toggle('light-mode');
+    document.body.classList.toggle('dark-mode');
+  }
 </script>
 
 </body>

@@ -2,26 +2,381 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <title>Página Principal - VytalGym</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Página principal</title>
-  <link rel="stylesheet" href="../static/css/pagina.css">
+  <!-- Fuente de Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
+  <style>
+    /* ---------------- GLOBAL STYLES ---------------- */
+    * {
+      margin: 0; 
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(180deg, #001a33 0%, #002838 40%, #002f2f 100%);
+      color: #fff;
+      scroll-behavior: smooth;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    /* ---------------- HEADER ---------------- */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(0, 10, 20, 0.95);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease;
+    }
+    header.hidden {
+      transform: translateY(-100%);
+    }
+    header .header-left h1 {
+      font-size: 1.8rem;
+      color: #58a058;
+    }
+    header nav a {
+      margin: 0 1rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+    header nav a:hover {
+      color: #58a058;
+    }
+    .header-right a.btn-login {
+      background-color: #004d40;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      transition: background-color 0.3s, transform 0.3s;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+    .header-right a.btn-login:hover {
+      background-color: #58a058;
+      transform: scale(1.05);
+    }
+
+    /* ---------------- HERO-SLIDER SECTION ---------------- */
+    .hero-slider {
+      position: relative;
+      min-height: 550px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .slider-image {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+    .slider-image.active {
+      opacity: 1;
+    }
+    .hero-slider::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.7));
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: #fff;
+      max-width: 600px;
+      padding: 2rem;
+    }
+    .hero-content h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .hero-content p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .hero-content button {
+      padding: 0.8rem 1.5rem;
+      background-color: #004d40;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+    .hero-content button:hover {
+      background-color: #58a058;
+      transform: scale(1.05);
+    }
+    .slider-arrows {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      transform: translateY(-50%);
+      padding: 0 1rem;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .slider-arrows .prev, .slider-arrows .next {
+      font-size: 2rem;
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 50%;
+      pointer-events: auto;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s;
+      color: #fff;
+    }
+    .slider-arrows .prev:hover, .slider-arrows .next:hover {
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    /* ---------------- ABOUT SECTION ---------------- */
+    .about {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      gap: 2rem;
+      background-color: rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+    .about img {
+      max-width: 300px;
+      width: 100%;
+      border-radius: 10px;
+      transform: scale(0);
+      opacity: 0;
+    }
+    .about .text {
+      max-width: 600px;
+      text-align: left;
+    }
+    .about .text h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #58a058;
+      text-transform: uppercase;
+    }
+    .about .text p {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: #ccc;
+      margin-bottom: 1rem;
+    }
+    .about .text button {
+      margin-top: 0.5rem;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      background-color: #004d40;
+      color: #fff;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+    .about .text button:hover {
+      background-color: #58a058;
+      transform: scale(1.05);
+    }
+
+    /* ---------------- SECTIONS BASE ---------------- */
+    section {
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    section h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      color: #58a058;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+    /* ---------------- CARDS ---------------- */
+    .card {
+      background-color: #1e2b1e;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      overflow: hidden;
+      transition: transform 0.3s;
+      width: 300px;
+      margin: 0 auto;
+    }
+    .card:hover {
+      transform: scale(1.02);
+    }
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .card h3 {
+      color: #58a058;
+      padding: 1rem 1rem 0.5rem;
+      margin: 0;
+      font-size: 1.4rem;
+    }
+    .card p {
+      padding: 0 1rem 1rem;
+      margin: 0;
+      color: #fff;
+      font-size: 1rem;
+    }
+    .card button {
+      margin: 1rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      background-color: #004d40;
+      color: #fff;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .card button:hover {
+      background-color: #58a058;
+    }
+
+    /* ---------------- CTA SECTION ---------------- */
+    .cta-section {
+      background-color: #002f2f;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .cta-section h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .cta-section p {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    .cta-section button {
+      padding: 0.8rem 1.5rem;
+      background-color: #004d40;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+    .cta-section button:hover {
+      background-color: #58a058;
+      transform: scale(1.05);
+    }
+
+    /* ---------------- PARALLAX FOOD SECTION ---------------- */
+    .parallax-food {
+      background: url('https://images.unsplash.com/photo-1568158870658-a4a1f1f7d0f6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1600') center/cover no-repeat fixed;
+      padding: 4rem 2rem;
+      text-align: center;
+      color: #fff;
+      position: relative;
+    }
+    .food-content {
+      background-color: rgba(0,0,0,0.5);
+      display: inline-block;
+      padding: 2rem;
+      border-radius: 10px;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+    .parallax-food h2 {
+      color: #58a058;
+      margin-bottom: 1rem;
+    }
+
+    /* ---------------- EXTRA CONTENT ---------------- */
+    .extra-content {
+      padding: 2rem;
+      min-height: 600px;
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    /* ---------------- FOOTER ---------------- */
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: rgba(0, 10, 20, 0.95);
+      color: #58a058;
+    }
+
+    /* ---------------- ANIMATIONS ---------------- */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes floatImage {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+    .expand-on-load {
+      animation: expandImage 2.5s ease-out forwards;
+    }
+    @keyframes expandImage {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+      80% {
+        transform: scale(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+  </style>
 </head>
 <body>
-    
+
+  <!-- HEADER -->
   <header>
-    <h1><a href="{{ url_for('principal') }}" style="text-decoration: none; color: inherit;">VytalGym</a></h1>
-    <nav>
-      <a href="{{ url_for('salud') }}">Salud</a>
+    <div class="header-left">
+      <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
+    </div>
+    <nav class="header-center">
+      <a href="{{ url_for('pagina') }}">Actividad</a>
       <a href="{{ url_for('fitness') }}">Fitness</a>
-      <a href="{{ url_for('alimentacion') }}">Alimentación</a>
       <a href="{{ url_for('precios') }}">Servicios</a>
+      <a href="{{ url_for('alimentacion') }}">Alimentación</a>
       <a href="{{ url_for('contacto') }}">Contacto</a>
     </nav>
     <div class="header-right">
       {% if session.user %}
         {% if session.user.foto %}
-          <img src="{{ session.user.foto }}" alt="Foto de {{ session.user.nombre }}" class="profile-img"
-            {% if session.user.login_method == "local" %} style="cursor:pointer;" onclick="location.href='{{ url_for('configurar_foto') }}';" {% endif %}>
+          <img src="{{ session.user.foto }}"
+               alt="Foto de {{ session.user.nombre }}"
+               class="profile-img"
+               style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; cursor: pointer;"
+               {% if session.user.login_method == "local" %} onclick="location.href='{{ url_for('configurar_foto') }}';" {% endif %}>
         {% else %}
           <span>{{ session.user.nombre }}</span>
           {% if session.user.login_method == "local" %}
@@ -29,229 +384,233 @@
           {% endif %}
         {% endif %}
       {% else %}
-        <a href="{{ url_for('login') }}" class="btn">Iniciar Sesión</a>
+        <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
       {% endif %}
     </div>
   </header>
-  
-  <section class="hero">
-    <div class="content">
-      <!-- Modificamos el título para incluir el nombre del usuario -->
-      <h1>Bienvenido a nuestra página {% if session.user %}{{ session.user.nombre }}{% else %}Invitado{% endif %}</h1>
-      <p>Metabolic Exercise and Nutrition</p>
-      <button>Ver Actividad</button>
+
+  <!-- HERO SLIDER -->
+  <section class="hero-slider fade-section" id="hero">
+    <div class="slider-image active" 
+         style="background-image: url('https://images.unsplash.com/photo-1517841905240-472988babdf9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1600');">
     </div>
-    
-    <div class="background-fade">
-      <!-- Imágenes del slider -->
-      <div class="fade-image" style="background-image: url('../static/imagenes/ejercicio.jpg.jpg');"></div>
-      <div class="fade-image" style="background-image: url('../static/imagenes/Imagen de WhatsApp 2025-02-04 a las 09.55.57_32cb9fda.jpg');"></div>
-      <div class="fade-image" style="background-image: url('../static/imagenes/Imagen de WhatsApp 2025-02-04 a las 10.23.34_11c9de6b.jpg');"></div>
-      <div class="fade-image" style="background-image: url('../static/imagenes/organic-dessert-wooden-table-healthy-lifestyle-generated-by-ai.jpg');"></div>
+    <div class="slider-image" 
+         style="background-image: url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1600');">
     </div>
-    
-    <!-- Flechas para controlar el slider -->
+    <div class="slider-image" 
+         style="background-image: url('https://images.unsplash.com/photo-1518611012118-696072aa579a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1600');">
+    </div>
+    <div class="slider-image" 
+         style="background-image: url('https://images.unsplash.com/photo-1540494341133-de51c0ad0b33?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1600');">
+    </div>
     <div class="slider-arrows">
       <span class="prev">&#10094;</span>
       <span class="next">&#10095;</span>
     </div>
+    <div class="hero-content">
+      <h1>Bienvenido a VytalGym</h1>
+      <p>Metabolic Exercise and Nutrition</p>
+      <button onclick="alert('Ir a Actividad')">Ver Actividad</button>
+    </div>
   </section>
 
-  <!-- Otras secciones de la página -->
-  <section class="social">
-    <h2>Síguenos en las redes sociales</h2>
+  <!-- ABOUT (ALIMENTACIÓN) -->
+  <section class="about fade-section" id="alimentacion">
+    <!-- Imagen reemplazada por una URL de internet -->
+    <img id="eatenImage"
+         src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+         alt="Nuestra historia"
+         class="expand-on-load">
+    <div class="text">
+      <h2>Más sobre nuestra marca</h2>
+      <p>Descubre nuestros orígenes y la pasión por un estilo de vida saludable. Fusionamos tecnología y bienestar para crear experiencias únicas.</p>
+      <button onclick="alert('Más información sobre la historia de VytalGym')">Leer más</button>
+    </div>
+  </section>
+
+  <!-- SERVICIOS -->
+  <section class="fade-section" id="servicios">
+    <h2>Nuestros Servicios</h2>
     <div class="grid">
       <div class="card">
-        <img src="img11.png" alt="Red social 1">
-        <button onclick="window.open('https://www.facebook.com', '_blank')">Facebook</button>
+        <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Servicio Básico">
+        <h3>Servicio Básico</h3>
+        <p>99 € - Entrenamiento esencial para iniciar tu cambio.</p>
+        <button>Más info</button>
       </div>
       <div class="card">
-        <img src="img12.png" alt="Red social 2">
-        <button onclick="window.open('https://www.twitter.com', '_blank')">Twitter</button>
+        <img src="https://images.unsplash.com/photo-1571019613914-85f342c3c6b3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Servicio Intermedio">
+        <h3>Servicio Intermedio</h3>
+        <p>149 € - Programas avanzados con seguimiento personalizado.</p>
+        <button>Más info</button>
       </div>
       <div class="card">
-        <img src="img13.png" alt="Red social 3">
-        <button onclick="window.open('https://www.instagram.com', '_blank')">Instagram</button>
+        <img src="https://images.unsplash.com/photo-1580129504477-9cbb3d8c14b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Servicio Avanzado">
+        <h3>Servicio Avanzado</h3>
+        <p>199 € - Planes completos y asesoría integral para expertos.</p>
+        <button>Más info</button>
       </div>
     </div>
   </section>
-  
-  <section class="features">
-    <h2>Productos destacados</h2>
+
+  <!-- FITNESS (PLANES) -->
+  <section class="fade-section" id="fitness">
+    <h2>Planes de Fitness</h2>
     <div class="grid">
       <div class="card">
-        <img src="img1.png" alt="Producto 1">
-        <h3>Nombre del producto</h3>
-        <p>25 €</p>
-      </div>
-      <div class="card">
-        <img src="img2.png" alt="Producto 2">
-        <h3>Nombre del producto</h3>
-        <p>25 €</p>
-      </div>
-      <div class="card">
-        <img src="img3.png" alt="Producto 3">
-        <h3>Nombre del producto</h3>
-        <p>25 €</p>
-      </div>
-    </div>
-    <button>Ver todo</button>
-  </section>
-  
-  <section class="services">
-    <h2>Nuestros servicios</h2>
-    <div class="grid">
-      <div class="card">
-        <img src="img4.png" alt="Servicio básico">
-        <h3>Servicio básico</h3>
-        <p>99 €</p>
-        <p>Detalles del servicio básico.</p>
-      </div>
-      <div class="card">
-        <img src="img5.png" alt="Servicio intermedio">
-        <h3>Servicio intermedio</h3>
-        <p>149 €</p>
-        <p>Detalles del servicio intermedio.</p>
-      </div>
-      <div class="card">
-        <img src="img6.png" alt="Servicio avanzado">
-        <h3>Servicio avanzado</h3>
-        <p>199 €</p>
-        <p>Detalles del servicio avanzado.</p>
-      </div>
-    </div>
-  </section>
-  
-  <section class="plans">
-    <h2>Elige tu plan</h2>
-    <div class="grid">
-      <div class="card">
-        <img src="img7.png" alt="Plan 1">
+        <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800" alt="Suscripción Oro">
         <h3>Suscripción Oro</h3>
-        <p>100,00 €</p>
-        <p>Cada mes</p>
-        <p>Acceso exclusivo a clases y talleres.</p>
+        <p>100,00 €/mes</p>
+        <p>Acceso exclusivo a clases y talleres premium.</p>
         <button>Registrarse</button>
       </div>
       <div class="card">
-        <img src="img8.png" alt="Plan 2">
+        <img src="https://images.unsplash.com/photo-1568600891621-2f4a64a4c4d3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Suscripción Plata">
         <h3>Suscripción Plata</h3>
-        <p>80,00 €</p>
-        <p>Cada mes</p>
-        <p>Acceso limitado a recursos premium.</p>
+        <p>80,00 €/mes</p>
+        <p>Acceso a recursos limitados y clases estándar.</p>
         <button>Registrarse</button>
       </div>
       <div class="card">
-        <img src="img9.png" alt="Plan 3">
+        <img src="https://images.unsplash.com/photo-1605296867304-46d5465a13f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Suscripción Bronce">
         <h3>Suscripción Bronce</h3>
-        <p>50,00 €</p>
-        <p>Cada mes</p>
-        <p>Acceso básico a recursos principales.</p>
+        <p>50,00 €/mes</p>
+        <p>Acceso básico a entrenamientos esenciales.</p>
         <button>Registrarse</button>
       </div>
     </div>
   </section>
-  
-  <section class="about">
-    <h2>Más sobre nuestra marca</h2>
-    <div class="content">
-      <img src="img10.png" alt="Nuestra historia">
-      <div class="text">
-        <p>Cuenta quién eres, tus orígenes y lo que te inspira. Aprovecha la creatividad para destacar.</p>
-        <button>Leer más</button>
-      </div>
-    </div>
-  </section>
-  
-  <section class="social">
-    <h2>Síguenos en las redes sociales</h2>
+
+  <!-- SECCIÓN SOCIAL (CONTACTO) -->
+  <section class="fade-section" id="contacto">
+    <h2>Síguenos en Redes Sociales</h2>
     <div class="grid">
       <div class="card">
-        <img src="img11.png" alt="Red social 1">
-        <button>Redes sociales</button>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook">
+        <h3>Facebook</h3>
+        <p>Comparte tu progreso y entérate de eventos.</p>
+        <button onclick="window.open('https://www.facebook.com','_blank');">Visitar</button>
       </div>
       <div class="card">
-        <img src="img12.png" alt="Red social 2">
-        <button>Redes sociales</button>
+        <img src="https://upload.wikimedia.org/wikipedia/fr/c/c8/Twitter_Bird.svg" alt="Twitter">
+        <h3>Twitter</h3>
+        <p>Entérate de noticias y tips de entrenamiento.</p>
+        <button onclick="window.open('https://www.twitter.com','_blank');">Visitar</button>
       </div>
       <div class="card">
-        <img src="img13.png" alt="Red social 3">
-        <button>Redes sociales</button>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
+        <h3>Instagram</h3>
+        <p>Inspírate con fotos y videos motivacionales.</p>
+        <button onclick="window.open('https://www.instagram.com','_blank');">Visitar</button>
       </div>
     </div>
+    <button style="margin-top: 1rem;" onclick="alert('Más redes sociales próximamente');">Ver todo</button>
   </section>
-  
-  <section class="cta-section">
+
+  <!-- CTA SECTION -->
+  <section class="cta-section fade-section">
     <h2>¡Únete a nuestra comunidad hoy!</h2>
     <p>Regístrate ahora y descubre los beneficios exclusivos de VytalGym.</p>
-    <button>Únete ahora</button>
+    <button onclick="alert('Formulario de Registro');">Únete ahora</button>
   </section>
-  
+
+  <!-- TFG INTRO SECTION -->
+  <section class="extra-content fade-section" id="tfg-intro">
+    <h2>Innovación en Salud y Deporte</h2>
+    <p>
+      Con tecnologías modernas como HTML, CSS, JavaScript y planes futuros en Java, nuestro proyecto busca ofrecer planes de entrenamiento y alimentación para un bienestar integral, respaldado por una infraestructura de servidor local y conexiones seguras.
+    </p>
+    <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Imagen TFG" 
+         style="width: 100%; max-width: 400px; margin-top: 1rem; animation: floatImage 3s infinite alternate;">
+  </section>
+
+  <!-- PARALLAX FOOD SECTION -->
+  <section class="parallax-food fade-section">
+    <div class="food-content">
+      <h2>Alimentación Saludable</h2>
+      <p>Descubre cómo una dieta balanceada puede cambiar tu vida. Diseñamos planes nutritivos para ayudarte a alcanzar tus objetivos de salud.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
   <footer>
-    <p>&copy; 2025 VitalGym. Diseñado con pasión y dedicación.</p>
+    <p>&copy; 2025 VytalGym. Diseñado con pasión y dedicación.</p>
   </footer>
 
-  <!-- JavaScript: Header Scroll y Slider -->
+  <!-- JAVASCRIPT: SLIDER Y FADE-IN SCROLL -->
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Header: ocultar/mostrar al hacer scroll
-      let lastScrollTop = 0;
-      const header = document.querySelector("header");
-      window.addEventListener("scroll", function() {
-        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight) {
-          header.classList.add("hidden");
-        } else {
-          header.classList.remove("hidden");
+    // HEADER: Ocultar/mostrar en scroll
+    let lastScrollTop = 0;
+    const header = document.querySelector("header");
+    window.addEventListener("scroll", function() {
+      let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight) {
+        header.classList.add("hidden");
+      } else {
+        header.classList.remove("hidden");
+      }
+      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    });
+
+    // HERO-SLIDER
+    const slides = document.querySelectorAll('.slider-image');
+    let currentSlide = 0;
+    const autoIntervalDuration = 6000;
+
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.classList.remove('active');
+        if (i === index) {
+          slide.classList.add('active');
         }
-        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
       });
-      
-      // Slider automático y manual
-      const slides = document.querySelectorAll('.fade-image');
-      let currentSlide = 0;
-      const normalTransition = 3000; // Transición automática de 3 segundos
-      const fastTransition = normalTransition / 2; // 1.5 segundos al hacer clic
-      const autoIntervalDuration = 8000; // Intervalo automático de 8 segundos
-      
-      // Mostrar la primera imagen
-      slides[currentSlide].classList.add('active');
-      
-      function showSlide(index, transitionTime) {
-        slides.forEach(slide => {
-          slide.style.transitionDuration = transitionTime + "ms";
-          slide.classList.remove('active');
-        });
-        slides[index].classList.add('active');
-      }
-      
-      let autoSlideInterval = setInterval(function() {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide, normalTransition);
-      }, autoIntervalDuration);
-      
-      function resetAutoSlideInterval() {
-        clearInterval(autoSlideInterval);
-        autoSlideInterval = setInterval(function() {
-          currentSlide = (currentSlide + 1) % slides.length;
-          showSlide(currentSlide, normalTransition);
-        }, autoIntervalDuration);
-      }
-      
-      document.querySelector('.next').addEventListener('click', function() {
-        clearInterval(autoSlideInterval);
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide, fastTransition);
-        resetAutoSlideInterval();
+    }
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % slides.length;
+      showSlide(currentSlide);
+    }
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+      showSlide(currentSlide);
+    }
+    let autoSlideInterval = setInterval(nextSlide, autoIntervalDuration);
+
+    document.querySelector('.prev').addEventListener('click', () => {
+      clearInterval(autoSlideInterval);
+      prevSlide();
+      autoSlideInterval = setInterval(nextSlide, autoIntervalDuration);
+    });
+    document.querySelector('.next').addEventListener('click', () => {
+      clearInterval(autoSlideInterval);
+      nextSlide();
+      autoSlideInterval = setInterval(nextSlide, autoIntervalDuration);
+    });
+
+    // FADE-IN SCROLL con Intersection Observer
+    const fadeSections = document.querySelectorAll('.fade-section');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('show');
+        }
       });
-      
-      document.querySelector('.prev').addEventListener('click', function() {
-        clearInterval(autoSlideInterval);
-        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-        showSlide(currentSlide, fastTransition);
-        resetAutoSlideInterval();
-      });
+    }, { threshold: 0.1 });
+
+    fadeSections.forEach(section => {
+      observer.observe(section);
     });
   </script>
+
+  <!-- KEYFRAMES ADICIONALES -->
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes floatImage {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+  </style>
 </body>
 </html>

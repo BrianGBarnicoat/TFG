@@ -1,24 +1,115 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Configurar Foto de Perfil</title>
-  <link rel="stylesheet" href="../static/css/pagina.css">
-</head>
-<body>
-  <header>
-    <h1>Subir foto de perfil</h1>
-    <a href="{{ url_for('logout') }}">Cerrar sesión</a>
-    <a href="{{ url_for('fitness') }}">Ajustes</a>
-  </header>
-  <main>
-    <form action="{{ url_for('subir_foto') }}" method="POST" enctype="multipart/form-data">
-      <label for="foto">Elige tu foto:</label>
-      <input type="file" name="foto" id="foto" required>
-      <!-- Asegúrate de tener type="submit" -->
-      <button type="submit">Subir foto</button>
-    </form>
-    <button onclick="location.href='{{ url_for('principal') }}';">Volver a la página principal</button>
-  </main>
-</body>
+  <head>
+    <meta charset="UTF-8">
+    <title>Editar Perfil - VytalGym</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
+    <style>
+      /* Estilos específicos para el configurar_foto */
+      body {
+        transition: background-color 0.3s, color 0.3s;
+      }
+      main.config-container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 30px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        color: #333;
+      }
+      main.config-container.dark-mode { background: #333; color: #eee; }
+      main.config-container h2 { margin-top: 0; }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      form label { font-weight: 600; }
+      form input[type="text"], form input[type="file"] {
+        padding: 10px;
+        border: 1px solid #bbb;
+        border-radius: 6px;
+      }
+      /* Botones mejorados */
+      .fancy-btn, .toggle-btn, .link-btn {
+        background: #007bff;
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.3s;
+      }
+      .fancy-btn:hover, .toggle-btn:hover {
+        background: #0056b3;
+        transform: scale(1.05);
+      }
+      .link-btn {
+        background: none;
+        text-decoration: underline;
+        padding: 0;
+        font-size: 0.9rem;
+        margin-top: 15px;
+      }
+      .profile-img, #preview {
+        max-width: 200px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin: 0 auto 20px;
+        display: block;
+      }
+    </style>
+  </head>
+  <body class="light-mode">
+    <header>
+      <div>
+        <h1>Editar Perfil</h1>
+      </div>
+      <div>
+        <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+      </div>
+    </header>
+    <main class="config-container">
+      <!-- Muestra la foto actual o un placeholder -->
+      {% if session.user and session.user.foto %}
+        <img src="{{ session.user.foto }}" alt="Foto actual" class="profile-img">
+      {% else %}
+        <img src="https://via.placeholder.com/200" alt="Sin foto" class="profile-img">
+      {% endif %}
+      <!-- Formulario para actualizar datos -->
+      <form id="userDataForm" action="{{ url_for('update_user') }}" method="POST">
+        <label for="nombre">Nombre (opcional)</label>
+        <input type="text" id="nombre" name="nombre" placeholder="Ej. brian" value="{{ session.user.nombre if session.user else '' }}">
+        <label for="ubicacion">Ubicación (opcional)</label>
+        <input type="text" id="ubicacion" name="ubicacion" placeholder="Tu ubicación">
+        <button type="submit" class="fancy-btn">Guardar datos</button>
+      </form>
+      <!-- Formulario para cambiar la foto -->
+      <form id="fotoForm" action="{{ url_for('subir_foto') }}" method="POST" enctype="multipart/form-data">
+        <label for="foto">Elige tu foto:</label>
+        <input type="file" name="foto" id="foto" accept="image/*" required onchange="previewImage(event)">
+        <img id="preview" src="#" alt="Vista previa">
+        <button type="submit" class="fancy-btn">Subir foto</button>
+      </form>
+      <!-- Botones adicionales -->
+      <button class="toggle-btn" onclick="toggleMode()">Cambiar modo claro/oscuro</button>
+      <button class="link-btn" onclick="location.href='{{ url_for('principal') }}'">Volver a la página principal</button>
+    </main>
+    <script>
+      function previewImage(event) {
+        const preview = document.getElementById('preview');
+        preview.src = URL.createObjectURL(event.target.files[0]);
+        preview.style.display = 'block';
+      }
+      function toggleMode() {
+        document.body.classList.toggle('light-mode');
+        document.body.classList.toggle('dark-mode');
+        document.querySelector('main.config-container').classList.toggle('dark-mode');
+      }
+    </script>
+  </body>
 </html>
