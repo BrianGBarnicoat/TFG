@@ -91,7 +91,7 @@ def serve_login_images(filename):
 @app.route('/logout')
 def logout():
     session.pop("user", None)
-    return redirect(url_for('login'))
+    return redirect(url_for('principal'))
 
 # Registro de usuario (POST)
 @app.route('/registrar_usuario', methods=['POST'])
