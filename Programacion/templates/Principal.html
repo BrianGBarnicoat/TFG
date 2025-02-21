@@ -361,6 +361,14 @@
     .fade-section.show {
       opacity: 1;
     }
+
+    /* Ajustar tamaño de iconos en sección de contacto */
+    section#contacto .card img {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      margin: 0 auto;
+    }
   </style>
 </head>
 <body>
@@ -492,22 +500,23 @@
     <h2>Síguenos en Redes Sociales</h2>
     <div class="grid">
       <div class="card">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" onclick="window.open('https://www.facebook.com','_blank');">
         <h3>Facebook</h3>
         <p>Comparte tu progreso y entérate de eventos.</p>
-        <button onclick="window.open('https://www.facebook.com','_blank');">Visitar</button>
+        <!-- Botón eliminado -->
       </div>
       <div class="card">
-        <img src="https://upload.wikimedia.org/wikipedia/fr/c/c8/Twitter_Bird.svg" alt="Twitter">
+        <!-- Actualización de la imagen de Twitter -->
+        <img src="../static/imagenes/twitter.png" alt="Twitter" onclick="window.open('https://www.twitter.com','_blank');">
         <h3>Twitter</h3>
         <p>Entérate de noticias y tips de entrenamiento.</p>
-        <button onclick="window.open('https://www.twitter.com','_blank');">Visitar</button>
+        <!-- Botón eliminado -->
       </div>
       <div class="card">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" onclick="window.open('https://www.instagram.com','_blank');">
         <h3>Instagram</h3>
         <p>Inspírate con fotos y videos motivacionales.</p>
-        <button onclick="window.open('https://www.instagram.com','_blank');">Visitar</button>
+        <!-- Botón eliminado -->
       </div>
     </div>
     <button style="margin-top: 1rem;" onclick="alert('Más redes sociales próximamente');">Ver todo</button>
