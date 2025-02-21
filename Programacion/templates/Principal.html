@@ -353,6 +353,14 @@
         transform: scale(1);
       }
     }
+    /* Agregar estilos para efecto fade-in */
+    .fade-section {
+      opacity: 0;
+      transition: opacity 1.5s ease-out;
+    }
+    .fade-section.show {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -388,8 +396,7 @@
       {% endif %}
     </div>
   </header>
-  a
-
+  
   <!-- HERO SLIDER -->
   <section class="hero-slider fade-section" id="hero">
     <div class="slider-image active" 
@@ -601,17 +608,5 @@
       observer.observe(section);
     });
   </script>
-
-  <!-- KEYFRAMES ADICIONALES -->
-  <style>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes floatImage {
-      from { transform: translateY(0); }
-      to { transform: translateY(-10px); }
-    }
-  </style>
 </body>
 </html>

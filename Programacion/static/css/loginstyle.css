@@ -15,11 +15,58 @@ body {
   background-color: rgb(97, 105, 101);
 }
 
+/* Estilos básicos para el login */
 .wrapper {
-  display: flex;
-  justify-content: center;            
-  align-items: center;
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #001a33 0%, #002838 40%, #002f2f 100%);
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 850px;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.forms-container {
+  padding: 2rem;
+}
+
+.title {
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+.input-field {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.input-field input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.btn {
+  background: #004d40;
+  color: white;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn:hover {
+  background: #58a058;
 }
 
 .container {
