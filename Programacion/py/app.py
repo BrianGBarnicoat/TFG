@@ -269,9 +269,9 @@ def iniciar_servidor_en_segundo_plano():
         print("⚠️ El servidor Flask ya está corriendo.\n")
         return
     print("\n🚀🔥 ¡El servidor Flask se está iniciando en segundo plano! 🔥🚀")
-    server_thread = threading.Thread(target=lambda: app.run(debug=True, use_reloader=False), daemon=True)
+    server_thread = threading.Thread(target=lambda: app.run(debug=True, use_reloader=False, port=8000), daemon=True)
     server_thread.start()
-    print("   Accede a http://127.0.0.1:5000/ para ver la aplicación.\n")
+    print("   Accede a http://127.0.0.1:8000/ para ver la aplicación.\n")
 
 def submenu_servidor():
     import questionary
@@ -362,4 +362,4 @@ if __name__ == "__main__":
     if "--menu" in sys.argv:
         iniciar_asistente()
     else:
-        app.run(debug=True)
+        app.run(debug=True, port=5000)
