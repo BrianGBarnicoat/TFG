@@ -6,6 +6,8 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from flask import session, url_for, redirect, request
+import json
+import requests
 
 # Definimos los alcances que necesitamos
 SCOPES = [
@@ -27,6 +29,11 @@ if firebase_admin._apps:
     database = rtdb.reference("/")
 else:
     database = None
+
+# Cargar credenciales de Google
+GOOGLE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "google_oauth_credentials.json")
+with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
+    google_creds = json.load(f)['web']
 
 def get_credentials():
     """
@@ -62,10 +69,12 @@ def autorizar():
     Redirige al usuario a la pantalla de consentimiento de Google
     """
     flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
+    # Genera el redirect_uri que debe coincidir con google_oauth_credentials.json
     flow.redirect_uri = url_for('callback', _external=True)
     authorization_url, state = flow.authorization_url(
         access_type='offline',
-        include_granted_scopes='true'
+        include_granted_scopes='true',
+        prompt='consent'   # Forzar el consentimiento para obtener un nuevo código
     )
     session['state'] = state
     return redirect(authorization_url)
@@ -75,49 +84,58 @@ def oauth2callback():
     Recibe la respuesta de Google, intercambia el 'code' por el token
     y registra/actualiza al usuario en Realtime Database.
     """
-    state = session.get('state')
-    if not state:
-        return "Error: No se encontró el parámetro 'state' en la sesión.", 400
+    code = request.args.get('code')
+    state = request.args.get('state')
+    # Validar que el estado concuerde
+    if state != session.get('state'):
+        return "Estado no coincide", 400
+    if not code:
+        return "Falta el parámetro 'code'", 400
 
-    flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES, state=state)
-    flow.redirect_uri = url_for('callback', _external=True)
+    # Usar redirect_uri generado de forma dinámica que coincida EXACTAMENTE
+    redirect_uri = url_for('callback', _external=True)
+    token_url = google_creds['token_uri']
+    data = {
+        'code': code,
+        'client_id': google_creds['client_id'],
+        'client_secret': google_creds['client_secret'],
+        'redirect_uri': redirect_uri,
+        'grant_type': 'authorization_code'
+    }
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    r = requests.post(token_url, data=data, headers=headers)
+    if r.status_code != 200:
+        return f"Error al obtener token: {r.text}", r.status_code
 
-    try:
-        flow.fetch_token(authorization_response=request.url)
-    except Exception as e:
-        print("Error al obtener el token:", e)
-        return "Error al obtener el token de Google: " + str(e), 400
+    token_response = r.json()
+    session['google_token'] = token_response
 
-    # Almacena las credenciales en la sesión
-    creds = flow.credentials
-    session['credentials'] = creds_to_dict(creds)
-
-    # Obtener info del usuario (ID Token)
+    # Verificar el ID Token con tolerancia al desfase (clock skew)
     from google.oauth2 import id_token
     from google.auth.transport import requests as g_requests
 
     try:
         user_info = id_token.verify_oauth2_token(
-            creds.id_token,
+            token_response['id_token'],
             g_requests.Request(),
-            creds.client_id
+            google_creds['client_id'],
+            clock_skew_in_seconds=300  # Permite un desfase de 5 minutos
         )
     except ValueError as e:
         return f"Error al verificar el ID Token: {str(e)}", 400
 
-    # user_info tiene campos como 'email', 'name', 'picture', 'sub'
+    # Extraer datos del usuario
     email = user_info.get("email")
     nombre = user_info.get("name", "")
     foto = user_info.get("picture", "")
 
-    # Registramos o actualizamos en Realtime Database
+    # Registrar o actualizar en la Realtime Database
     if database is not None and email:
         email_key = email.replace('.', '_')
         usuario_ref = database.child("usuarios").child(email_key)
         usuario_data = usuario_ref.get()
 
         if not usuario_data:
-            # Si no existe, lo creamos
             usuario_ref.set({
                 "nombre": nombre,
                 "email": email,
@@ -125,18 +143,17 @@ def oauth2callback():
                 "creado_via": "google_oauth"
             })
         else:
-            # Si existe, actualizamos info
             usuario_ref.update({
                 "nombre": nombre,
                 "foto": foto
             })
 
-    # Guardamos la info del usuario en la sesión
+    # Guardar información del usuario en la sesión
     session["user"] = {
         "nombre": nombre,
         "email": email,
         "foto": foto
     }
 
-    # Cambiado: Redirige a la página principal para mostrar la foto correctamente
-    return redirect(url_for('main.principal'))
+    # Redirigir a la página principal
+    return redirect(url_for('principal'))
