@@ -62,15 +62,32 @@
         margin: 0 auto 20px;
         display: block;
       }
+      .header-right a.btn-login {
+        background-color: #004d40;
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        transition: background-color 0.3s, transform 0.3s;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+      }
+      .header-right a.btn-login:hover {
+        background-color: #58a058;
+        transform: scale(1.05);
+      }
     </style>
   </head>
   <body class="light-mode">
     <header>
-      <div>
-        <h1>Editar Perfil</h1>
+      <div class="header-left">
+        <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
       </div>
-      <div>
-        <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+      <div class="header-center">
+        <h2>Editar Perfil</h2>
+      </div>
+      <div class="header-right">
+        <a href="{{ url_for('logout') }}" class="btn-login">Cerrar Sesión</a>
       </div>
     </header>
     <main class="config-container">
