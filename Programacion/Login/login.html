@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Iconos de Font Awesome -->
     <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
+    
+    <!-- Firebase SDK sin async/defer -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <!-- CSS de tu proyecto -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/loginstyle.css') }}">
 
@@ -17,8 +23,15 @@
           <div class="signin-signup">
 
             <!-- FORMULARIO DE INICIO DE SESIÓN -->
-            <form action="{{ url_for('iniciar_sesion') }}" method="POST" class="sign-in-form">
+            <form action="{{ url_for('iniciar_sesion') }}" method="POST" class="sign-in-form" id="loginForm">
               <h2 class="title">Iniciar Sesión</h2>
+              {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                  <div class="alert alert-danger">
+                    {{ messages[0] }}
+                  </div>
+                {% endif %}
+              {% endwith %}
               <div class="input-field">
                 <i class="fas fa-user"></i>
                 <!-- Ajustamos el placeholder a "Email" y agregamos name="email" -->
@@ -103,5 +116,6 @@
 
     <!-- JS con la lógica para alternar entre forms -->
     <script src="{{ url_for('static', filename='js/loginscript.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
   </body>
 </html>

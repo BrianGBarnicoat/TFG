@@ -49,16 +49,29 @@ else:
 # --------------------------------------------------------------------
 # Configuración de Flask
 # --------------------------------------------------------------------
+# Actualizar las rutas base
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 LOGIN_DIR = os.path.join(BASE_DIR, 'Login')
 PROFILE_DIR = os.path.join(BASE_DIR, 'profile')
 
-app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
+# Configurar Flask con las rutas correctas
+app = Flask(__name__, 
+           template_folder=TEMPLATES_DIR,
+           static_folder=STATIC_DIR)
 app.secret_key = "clave_secreta_segura"  # Cambia en producción
 CORS(app)
 bcrypt = Bcrypt(app)
+
+# Agregar la carpeta Login al path de búsqueda de templates
 app.jinja_loader.searchpath.extend([LOGIN_DIR, PROFILE_DIR])
+
+# Debug: Imprimir rutas para verificar
+print("Templates Directory:", TEMPLATES_DIR)
+print("Login Directory:", LOGIN_DIR)
+print("Static Directory:", STATIC_DIR)
+print("Searchpath:", app.jinja_loader.searchpath)
 
 # --------------------------------------------------------------------
 # Rutas de la Aplicación
@@ -80,7 +93,11 @@ def principal():
 # Página de login
 @app.route('/login')
 def login():
-    return render_template('login.html')
+    try:
+        return render_template('login.html')
+    except Exception as e:
+        print(f"Error rendering login template: {str(e)}")
+        return str(e), 500
 
 # Servicio para imágenes del login
 @app.route('/login/img/<path:filename>')
@@ -120,28 +137,38 @@ def registrar_usuario():
 # Inicio de sesión (POST)
 @app.route('/iniciar_sesion', methods=['POST'])
 def iniciar_sesion():
-    if database is None:
-        return "No se pudo conectar a Realtime Database", 500
-    data = request.form
-    email = data.get('email')
-    password = data.get('password')
-    if not email or not password:
-        return "❌ Debes ingresar email y contraseña.", 400
-    email_key = email.replace('.', '_')
-    usuario_ref = database.child("usuarios").child(email_key)
-    usuario_data = usuario_ref.get()
-    if not usuario_data:
-        return "❌ Usuario no encontrado.", 404
-    if bcrypt.check_password_hash(usuario_data["password"], password):
-        session["user"] = {
-            "nombre": usuario_data["nombre"],
-            "email": usuario_data["email"],
-            "foto": usuario_data.get("foto", ""),
-            "login_method": "local"
-        }
-        return redirect(url_for('principal'))
-    else:
-        return "❌ Contraseña incorrecta.", 401
+    try:
+        if database is None:
+            return "Error de conexión con la base de datos", 500
+        
+        data = request.form
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return "Email y contraseña son requeridos", 400
+            
+        email_key = email.replace('.', '_')
+        usuario_ref = database.child("usuarios").child(email_key)
+        usuario_data = usuario_ref.get()
+        
+        if not usuario_data:
+            return "Usuario no encontrado", 404
+            
+        if bcrypt.check_password_hash(usuario_data["password"], password):
+            session["user"] = {
+                "nombre": usuario_data["nombre"],
+                "email": usuario_data["email"],
+                "foto": usuario_data.get("foto", ""),
+                "login_method": "local"
+            }
+            return redirect(url_for('principal'))
+        else:
+            return "Contraseña incorrecta", 401
+            
+    except Exception as e:
+        print(f"Error en inicio de sesión: {str(e)}")
+        return f"Error en el servidor: {str(e)}", 500
 
 # Otras páginas (puedes agregar más según sea necesario)
 @app.route('/pagina')
@@ -362,4 +389,4 @@ if __name__ == "__main__":
     if "--menu" in sys.argv:
         iniciar_asistente()
     else:
-        app.run(debug=True, port=5000)
+        app.run(debug=True, port=8000)
