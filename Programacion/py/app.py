@@ -16,7 +16,7 @@ from werkzeug.utils import secure_filename
 
 # Importar módulos auxiliares (estos archivos pueden mantenerse separados)
 from auth import autorizar as google_autorizar, oauth2callback
-from calendar_api import agregar_evento
+from calendar_api import agregar_evento, get_calendar_events
 from fitness import get_fitness_data, get_sleep_data
 
 # --------------------------------------------------------------------
@@ -239,7 +239,7 @@ def subir_foto():
     print(f">>> Archivo recibido: {file.filename}")
     filename = secure_filename(file.filename)
     email_key = session["user"]["email"].replace('.', '_')
-    bucket_name = "vytalgym.firebasestorage.app"  # <-- Asegúrate de usar el bucket correcto
+    bucket_name = "tfgbp-d9051.firebasestorage.app"  
     bucket = firebase_admin.storage.bucket(bucket_name)
     folder_path = f"fotos/{email_key}/"
     # Crear un placeholder para la carpeta (virtual)
@@ -284,6 +284,12 @@ def update_user():
         usuario_ref.update(updates)
         session["user"].update(updates)
     return redirect(url_for('configurar_foto'))
+
+# Nuevo endpoint para obtener los eventos de Google Calendar
+@app.route('/api/calendar/events')
+def api_calendar_events():
+    events = get_calendar_events()
+    return jsonify(events)
 
 # --------------------------------------------------------------------
 # Funciones para iniciar el servidor en segundo plano (opcional)

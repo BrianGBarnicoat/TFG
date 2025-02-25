@@ -37,3 +37,27 @@ def agregar_evento():
         return jsonify({"status": "success", "evento": enlace})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
+
+def get_calendar_events():
+    creds = get_credentials()
+    if not creds:
+        return {"status": "error", "message": "No autorizado"}
+    try:
+        service = build('calendar', 'v3', credentials=creds)
+        now = datetime.utcnow().isoformat() + 'Z'
+        events_result = service.events().list(
+            calendarId='primary',
+            timeMin=now,
+            maxResults=10,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        events = events_result.get('items', [])
+        events_transformed = []
+        for event in events:
+            summary = event.get('summary', 'Sin título')
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            events_transformed.append({'summary': summary, 'start': start})
+        return {"status": "success", "events": events_transformed}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}

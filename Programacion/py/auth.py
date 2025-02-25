@@ -37,11 +37,16 @@ with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
 
 def get_credentials():
     """
-    Devuelve las credenciales (token) de Google guardadas en la sesión
+    Devuelve las credenciales (token) de Google guardadas en la sesión.
+    Si no se encuentra 'refresh_token', retorna None para forzar la reautorización.
     """
     creds = None
-    if 'credentials' in session:  # Busca credenciales en la sesión
-        creds = Credentials(**session['credentials'])
+    if 'credentials' in session:
+        creds_data = session['credentials']
+        if 'refresh_token' not in creds_data or not creds_data['refresh_token']:
+            # El refresh_token es esencial para refrescar el acceso; forzamos reautorización.
+            return None
+        creds = Credentials(**creds_data)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             try:
@@ -155,5 +160,15 @@ def oauth2callback():
         "foto": foto
     }
 
-    # Redirigir a la página principal
-    return redirect(url_for('principal'))
+    # Guardar las credenciales en la sesión
+    session['credentials'] = {
+        'token': token_response['access_token'],
+        'refresh_token': token_response.get('refresh_token'),
+        'token_uri': google_creds['token_uri'],
+        'client_id': google_creds['client_id'],
+        'client_secret': google_creds['client_secret'],
+        'scopes': SCOPES
+    }
+
+    # Redirigir a la página de alimentación (en lugar de a la principal)
+    return redirect(url_for('alimentacion'))
