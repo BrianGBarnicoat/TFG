@@ -7,13 +7,14 @@ import { getAnalytics } from "firebase/analytics";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyBTH-2zZR6ykmvhOsczuhQEIKsIB9o9ays",
-  authDomain: "vytalgym.firebaseapp.com",
-  projectId: "vytalgym",
-  storageBucket: "vytalgym.firebasestorage.app",
-  messagingSenderId: "861992809821",
-  appId: "1:861992809821:web:7295720a697ba5670d64b4",
-  measurementId: "G-7BR5SSGV0F"
+  apiKey: "AIzaSyDVkc_ZlGhr_OAow9NIXPZB6uItQu6Hvdo",
+  authDomain: "tfgbp-d9051.firebaseapp.com",
+  databaseURL: "https://tfgbp-d9051-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "tfgbp-d9051",
+  storageBucket: "tfgbp-d9051.appspot.com",
+  messagingSenderId: "600087678707",
+  appId: "1:600087678707:web:6b9c2cc815b5d8f8d13186",
+  measurementId: "G-WZW5GBHVFB"
 };
 
 // Initialize Firebase
