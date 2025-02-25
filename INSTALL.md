@@ -11,12 +11,23 @@ Este proyecto utiliza **Google OAuth** para la autenticación de usuarios y **Fi
 
 ## Instalación de Dependencias
 
-Ejecuta el siguiente comando en tu terminal para instalar todas las librerías necesarias:
+Ejecuta los siguientes comandos en tu terminal para instalar todas las librerías necesarias:
 
 ```bash
-pip install firebase-admin flask flask-cors flask-bcrypt google-auth-oauthlib
+pip install firebase-admin
 ```
-
+```bash
+pip install flask
+```
+```bash
+pip install flask-cors
+```
+```bash
+pip install flask-bcrypt
+```
+```bash
+pip install google-auth-oauthlib
+```
 ## Obtención de Credenciales
 
 El proyecto requiere dos tipos de credenciales:
@@ -47,7 +58,7 @@ El proyecto requiere dos tipos de credenciales:
    - Genera una Nueva Clave Privada  
      Ve a la pestaña Cuentas de servicio. Haz clic en Generar nueva clave privada y descarga el archivo JSON.
    - Almacena el Archivo de Forma Segura  
-     Coloca este archivo en tu proyecto, por ejemplo, en `credentials/firebase/`.
+     Coloca este archivo en tu proyecto, por ejemplo, en `credentials/claves seguras/`.
 
 ## Configuración y Uso del Token
 
