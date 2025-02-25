@@ -239,7 +239,7 @@ def subir_foto():
     print(f">>> Archivo recibido: {file.filename}")
     filename = secure_filename(file.filename)
     email_key = session["user"]["email"].replace('.', '_')
-    bucket_name = "vytalgym.firebasestorage.app"  # <-- Asegúrate de usar el bucket correcto
+    bucket_name = "tfgbp-d9051.firebasestorage.app"  
     bucket = firebase_admin.storage.bucket(bucket_name)
     folder_path = f"fotos/{email_key}/"
     # Crear un placeholder para la carpeta (virtual)
