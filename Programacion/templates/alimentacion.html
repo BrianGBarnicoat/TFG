@@ -440,6 +440,56 @@ body {
     height: 100px;
     border-radius: 50%;
   }
+
+  /* Nuevo estilo para la sección del calendario */
+  #google-calendar-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 1rem 1.5rem;
+    color: #333;
+  }
+
+  #google-calendar-container h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #004d40;
+    border-bottom: 2px solid #004d40;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Convertir la lista de eventos en una cuadrícula de "eventos" */
+  #events-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #events-list li {
+    background-color: #e0f7f1;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: 0.8rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+  }
+
+  #events-list li:hover {
+    transform: translateY(-3px);
+  }
+
+  #events-list li strong {
+    color: #004d40;
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
   </style>
 </head>
 <body>
