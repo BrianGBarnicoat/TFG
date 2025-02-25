@@ -33,8 +33,8 @@ if not firebase_admin._apps:
     try:
         cred = credentials.Certificate(CREDENTIALS_PATH)
         firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://vytalgym-default-rtdb.europe-west1.firebasedatabase.app/',
-            'storageBucket': 'vytalgym.firebasestorage.app'  # <-- Actualiza aquí con el nombre correcto
+            'databaseURL': 'https://tfgbp-d9051-default-rtdb.europe-west1.firebasedatabase.app',
+            'storageBucket': 'tfgbp-d9051.appspot.com'
         })
         database = rtdb.reference("/")
         test_value = database.get()
