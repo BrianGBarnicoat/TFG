@@ -1,0 +1,100 @@
+<style>
+  /* Estilos del header que estaban antes */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: rgba(0, 10, 20, 0.95);
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    transition: transform 0.3s ease-in-out;
+    z-index: 9999; /* Z-index muy alto para garantizar que esté encima de todo */
+  }
+
+  header.hidden { transform: translateY(-100%); }
+
+  header nav {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  header nav a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+
+  header nav a:hover {
+    color: #58a058;
+  }
+
+  header .header-left h1 a {
+    text-decoration: none;
+    color: #fff;
+  }
+
+  header .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  header .header-right .btn-login {
+    background-color: #004d40;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+    font-weight: 500;
+    border: none;
+  }
+
+  header .header-right .btn-login:hover {
+    background-color: #58a058;
+  }
+  
+  /* Estilo para la foto de perfil */
+  .profile-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+</style>
+
+<header>
+  <div class="header-left">
+    <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
+  </div>
+  <nav class="header-center">
+    <a href="{{ url_for('salud') }}">Salud</a>
+    <a href="{{ url_for('fitness') }}">Fitness</a>
+    <a href="{{ url_for('alimentacion') }}">Alimentación</a>
+    <a href="{{ url_for('precios') }}">Servicios</a>
+    <a href="{{ url_for('contacto') }}">Contacto</a>
+  </nav>
+  <div class="header-right">
+    {% if session.user %}
+      {% if session.user.foto %}
+        <!-- Removido el condicional para permitir que usuarios de Google también accedan -->
+        <img src="{{ session.user.foto }}"
+             alt="Foto de {{ session.user.nombre }}"
+             class="profile-img"
+             onclick="location.href='{{ url_for('configurar_foto') }}';"
+             style="cursor: pointer;" title="Configurar perfil">
+      {% else %}
+        <span>{{ session.user.nombre }}</span>
+        <button onclick="location.href='{{ url_for('configurar_foto') }}';">Subir foto de perfil</button>
+      {% endif %}
+    {% else %}
+      <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
+    {% endif %}
+  </div>
+</header>
