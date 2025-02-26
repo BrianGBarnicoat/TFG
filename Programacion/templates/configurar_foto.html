@@ -1,132 +1,934 @@
 <!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <title>Editar Perfil - VytalGym</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
-    <style>
-      /* Estilos específicos para el configurar_foto */
-      body {
-        transition: background-color 0.3s, color 0.3s;
+<html lang="es" data-theme="default">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Configuración - VytalGym</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/configuracion_perfil.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <style>
+    :root {
+      /* Variables de tema por defecto */
+      --primary-color: #58a058;
+      --secondary-color: #004d40;
+      --background-color: rgba(28, 40, 28, 0.9);
+      --text-color: #ffffff;
+      --header-color: rgba(0, 10, 20, 0.95);
+      --card-color: rgba(40, 50, 40, 0.9);
+      --accent-color: #3e7b3e;
+      --error-color: #ff5252;
+      --success-color: #4caf50;
+      --warning-color: #ff9800;
+      --info-color: #2196f3;
+    }
+    
+    [data-theme="dark"] {
+      --primary-color: #388e3c;
+      --secondary-color: #00352c;
+      --background-color: rgba(20, 20, 20, 0.95);
+      --text-color: #e0e0e0;
+      --header-color: rgba(10, 10, 10, 0.98);
+      --card-color: rgba(30, 30, 30, 0.95);
+      --accent-color: #2e5e2e;
+    }
+    
+    [data-theme="light"] {
+      --primary-color: #4CAF50;
+      --secondary-color: #2E7D32;
+      --background-color: rgba(240, 240, 240, 0.95);
+      --text-color: #333333;
+      --header-color: rgba(255, 255, 255, 0.98);
+      --card-color: rgba(255, 255, 255, 0.95);
+      --accent-color: #81C784;
+    }
+    
+    [data-theme="blue"] {
+      --primary-color: #2196F3;
+      --secondary-color: #0D47A1;
+      --background-color: rgba(25, 32, 65, 0.95);
+      --text-color: #ffffff;
+      --header-color: rgba(13, 71, 161, 0.95);
+      --card-color: rgba(30, 50, 90, 0.9);
+      --accent-color: #64B5F6;
+    }
+    
+    [data-theme="purple"] {
+      --primary-color: #9C27B0;
+      --secondary-color: #6A1B9A;
+      --background-color: rgba(60, 30, 70, 0.95);
+      --text-color: #ffffff;
+      --header-color: rgba(40, 20, 50, 0.95);
+      --card-color: rgba(70, 40, 80, 0.9);
+      --accent-color: #BA68C8;
+    }
+    
+    body {
+      background: var(--background-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+    
+    .config-container {
+      width: 100%;
+      max-width: 1000px;
+      margin: 100px auto 30px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .config-header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .config-body {
+      background-color: var(--card-color);
+      border-radius: 0 0 12px 12px;
+      padding: 0;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+    
+    .tab-container {
+      display: flex;
+      background-color: var(--header-color);
+    }
+    
+    .tab {
+      padding: 15px 25px;
+      cursor: pointer;
+      color: var(--text-color);
+      transition: background-color 0.3s;
+      flex: 1;
+      text-align: center;
+      border-bottom: 3px solid transparent;
+    }
+    
+    .tab:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .tab.active {
+      border-bottom: 3px solid var(--primary-color);
+      font-weight: bold;
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 30px;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* Estilo para la imagen de perfil y su contenedor */
+    .profile-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    .profile-image-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin-bottom: 20px;
+    }
+    
+    .profile-image {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--primary-color);
+    }
+    
+    .edit-photo-btn {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .edit-photo-btn:hover {
+      background-color: var(--accent-color);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(200, 200, 200, 0.3);
+      background-color: rgba(0, 0, 0, 0.1);
+      color: var(--text-color);
+      transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(88, 160, 88, 0.2);
+    }
+    
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--accent-color);
+      transform: translateY(-2px);
+    }
+    
+    .btn-danger {
+      background-color: var(--error-color);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background-color: #d32f2f;
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: var(--text-color);
+    }
+    
+    .btn-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    /* Diseño para la sección de apariencia */
+    .theme-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .theme-card {
+      width: calc(33.33% - 15px);
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      padding: 15px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .theme-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .theme-card.active {
+      border: 2px solid var(--primary-color);
+    }
+    
+    .theme-preview {
+      height: 100px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .preview-header {
+      height: 20px;
+    }
+    
+    .preview-body {
+      flex-grow: 1;
+      padding: 10px;
+    }
+    
+    .theme-name {
+      font-weight: bold;
+      margin-top: 5px;
+    }
+    
+    /* Preview específica para cada tema */
+    .theme-default .preview-header {
+      background-color: #58a058;
+    }
+    .theme-default .preview-body {
+      background-color: rgba(28, 40, 28, 0.9);
+    }
+    
+    .theme-dark .preview-header {
+      background-color: #388e3c;
+    }
+    .theme-dark .preview-body {
+      background-color: rgba(20, 20, 20, 0.95);
+    }
+    
+    .theme-light .preview-header {
+      background-color: #4CAF50;
+    }
+    .theme-light .preview-body {
+      background-color: rgba(240, 240, 240, 0.95);
+    }
+    
+    .theme-blue .preview-header {
+      background-color: #2196F3;
+    }
+    .theme-blue .preview-body {
+      background-color: rgba(25, 32, 65, 0.95);
+    }
+    
+    .theme-purple .preview-header {
+      background-color: #9C27B0;
+    }
+    .theme-purple .preview-body {
+      background-color: rgba(60, 30, 70, 0.95);
+    }
+    
+    /* Estilo para la previsualización */
+    .preview-section {
+      margin-top: 40px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 20px;
+    }
+    
+    .preview-title {
+      margin-bottom: 20px;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+    
+    .site-preview {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      overflow: hidden;
+      height: 300px;
+    }
+    
+    .site-preview-header {
+      height: 50px;
+      background-color: var(--header-color);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+    }
+    
+    .site-preview-body {
+      height: calc(100% - 50px);
+      background-color: var(--background-color);
+      padding: 20px;
+      overflow: auto;
+    }
+    
+    .site-preview-card {
+      background-color: var(--card-color);
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    
+    /* Estilos para la sección de cuenta */
+    .account-option {
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .account-option-info h3 {
+      margin-bottom: 5px;
+      color: var(--primary-color);
+    }
+    
+    .account-option-info p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .config-container {
+        margin: 80px 15px 20px;
       }
-      main.config-container {
-        max-width: 600px;
-        margin: 40px auto;
-        padding: 30px;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        color: #333;
-      }
-      main.config-container.dark-mode { background: #333; color: #eee; }
-      main.config-container h2 { margin-top: 0; }
-      form {
-        display: flex;
+      
+      .tab-container {
         flex-direction: column;
-        gap: 15px;
       }
-      form label { font-weight: 600; }
-      form input[type="text"], form input[type="file"] {
-        padding: 10px;
-        border: 1px solid #bbb;
-        border-radius: 6px;
+      
+      .tab {
+        border-bottom: none;
+        border-left: 3px solid transparent;
       }
-      /* Botones mejorados */
-      .fancy-btn, .toggle-btn, .link-btn {
-        background: #007bff;
-        color: #fff;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background 0.3s, transform 0.3s;
+      
+      .tab.active {
+        border-bottom: none;
+        border-left: 3px solid var(--primary-color);
       }
-      .fancy-btn:hover, .toggle-btn:hover {
-        background: #0056b3;
-        transform: scale(1.05);
+      
+      .btn-row {
+        flex-direction: column;
+        gap: 10px;
       }
-      .link-btn {
-        background: none;
-        text-decoration: underline;
-        padding: 0;
-        font-size: 0.9rem;
-        margin-top: 15px;
+      
+      .btn {
+        width: 100%;
       }
-      .profile-img, #preview {
-        max-width: 200px;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        margin: 0 auto 20px;
-        display: block;
+      
+      .theme-card {
+        width: 100%;
       }
-      .header-right a.btn-login {
-        background-color: #004d40;
-        color: #fff;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        transition: background-color 0.3s, transform 0.3s;
-        font-weight: 500;
-        border: none;
-        cursor: pointer;
-      }
-      .header-right a.btn-login:hover {
-        background-color: #58a058;
-        transform: scale(1.05);
-      }
-    </style>
-  </head>
-  <body class="light-mode">
-    <header>
-      <div class="header-left">
-        <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
+    }
+    
+    /* Notificaciones */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+      transform: translateX(200%);
+      transition: transform 0.3s ease-out;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    .notification.success {
+      background-color: var(--success-color);
+    }
+    
+    .notification.error {
+      background-color: var(--error-color);
+    }
+    
+    .notification.warning {
+      background-color: var(--warning-color);
+    }
+    
+    .notification-close {
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    
+    /* Estilos para la foto de Google */
+    .google-account-notice {
+      background-color: rgba(255, 152, 0, 0.2);
+      border-left: 4px solid var(--warning-color);
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    /* Interruptor para modo claro/oscuro */
+    .toggle-switch {
+      display: inline-block;
+      position: relative;
+      width: 60px;
+      height: 34px;
+      margin-left: 10px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 34px;
+      transition: 0.4s;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      border-radius: 50%;
+      transition: 0.4s;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--primary-color);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(26px);
+    }
+  </style>
+</head>
+<body>
+  {% include 'partials/header.html' %}
+  
+  <div class="config-container">
+    <div class="config-header">
+      <h1>Panel de Configuración</h1>
+      <button class="btn btn-secondary" id="saveAllConfig">Guardar Todo</button>
+    </div>
+    
+    <div class="config-body">
+      <div class="tab-container">
+        <div class="tab active" data-target="perfil">
+          <i class="fas fa-user-circle"></i> Perfil
+        </div>
+        <div class="tab" data-target="apariencia">
+          <i class="fas fa-paint-brush"></i> Apariencia
+        </div>
+        <div class="tab" data-target="cuenta">
+          <i class="fas fa-cog"></i> Cuenta
+        </div>
       </div>
-      <div class="header-center">
-        <h2>Editar Perfil</h2>
+      
+      <!-- Pestaña: Perfil -->
+      <div class="tab-content active" id="perfil">
+        <div class="profile-section">
+          {% if session.user.login_method == "google" %}
+            <div class="profile-image-container">
+              <img src="{{ session.user.foto }}" class="profile-image" alt="Foto de perfil" id="profileImageDisplay">
+            </div>
+            <div class="google-account-notice">
+              <p><i class="fab fa-google"></i> <strong>Cuenta de Google:</strong> Tu foto de perfil se sincroniza desde Google.</p>
+            </div>
+          {% else %}
+            <div class="profile-image-container">
+              <img src="{{ session.user.foto }}" class="profile-image" alt="Foto de perfil" id="profileImageDisplay">
+              <label for="photoInput" class="edit-photo-btn">
+                <i class="fas fa-camera"></i>
+              </label>
+              <input type="file" id="photoInput" name="foto" accept="image/*" style="display:none">
+            </div>
+          {% endif %}
+        </div>
+        
+        <form id="profileForm" action="{{ url_for('update_user') }}" method="POST">
+          <div class="form-row" style="display: flex; gap: 20px;">
+            <div class="form-group" style="flex: 1;">
+              <label for="nombre">Nombre:</label>
+              <input type="text" class="form-control" id="nombre" name="nombre" value="{{ session.user.nombre }}" {% if session.user.login_method == "google" %}readonly{% endif %}>
+              {% if session.user.login_method == "google" %}<small style="color: var(--warning-color);">Tu nombre se sincroniza desde Google</small>{% endif %}
+            </div>
+            
+            <div class="form-group" style="flex: 1;">
+              <label for="apellidos">Apellidos:</label>
+              <input type="text" class="form-control" id="apellidos" name="apellidos" value="{{ session.user.apellidos if session.user.apellidos else '' }}">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ session.user.email }}" readonly>
+          </div>
+          
+          <div class="form-group">
+            <label for="ubicacion">Ubicación:</label>
+            <input type="text" class="form-control" id="ubicacion" name="ubicacion" value="{{ session.user.ubicacion if session.user.ubicacion else '' }}">
+          </div>
+          
+          <div class="form-group">
+            <label for="biografia">Biografía:</label>
+            <textarea class="form-control" id="biografia" name="biografia" rows="3">{{ session.user.biografia if session.user.biografia else '' }}</textarea>
+          </div>
+          
+          <div class="btn-row">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            {% if session.user.login_method != "google" %}
+            <button type="button" class="btn btn-secondary" onclick="location.href='{{ url_for('cambiar_password') }}';">Cambiar Contraseña</button>
+            {% endif %}
+          </div>
+        </form>
       </div>
-      <div class="header-right">
-        <a href="{{ url_for('logout') }}" class="btn-login">Cerrar Sesión</a>
+      
+      <!-- Pestaña: Apariencia -->
+      <div class="tab-content" id="apariencia">
+        <h2>Personalizar Tema</h2>
+        <p>Selecciona un tema para personalizar tu experiencia en VytalGym.</p>
+        
+        <div class="theme-options">
+          <div class="theme-card theme-default active" data-theme="default">
+            <div class="theme-preview">
+              <div class="preview-header"></div>
+              <div class="preview-body"></div>
+            </div>
+            <div class="theme-name">Por defecto</div>
+          </div>
+          
+          <div class="theme-card theme-dark" data-theme="dark">
+            <div class="theme-preview">
+              <div class="preview-header"></div>
+              <div class="preview-body"></div>
+            </div>
+            <div class="theme-name">Oscuro</div>
+          </div>
+          
+          <div class="theme-card theme-light" data-theme="light">
+            <div class="theme-preview">
+              <div class="preview-header"></div>
+              <div class="preview-body"></div>
+            </div>
+            <div class="theme-name">Claro</div>
+          </div>
+          
+          <div class="theme-card theme-blue" data-theme="blue">
+            <div class="theme-preview">
+              <div class="preview-header"></div>
+              <div class="preview-body"></div>
+            </div>
+            <div class="theme-name">Azul</div>
+          </div>
+          
+          <div class="theme-card theme-purple" data-theme="purple">
+            <div class="theme-preview">
+              <div class="preview-header"></div>
+              <div class="preview-body"></div>
+            </div>
+            <div class="theme-name">Púrpura</div>
+          </div>
+        </div>
+        
+        <div class="preview-section">
+          <h3 class="preview-title">Vista previa:</h3>
+          <div class="site-preview">
+            <div class="site-preview-header">
+              <div style="color: var(--text-color); font-weight: bold;">VytalGym</div>
+            </div>
+            <div class="site-preview-body">
+              <div class="site-preview-card">
+                <h3 style="color: var(--primary-color); margin-bottom: 10px;">Tarjeta de ejemplo</h3>
+                <p style="color: var(--text-color);">Así es como se verán las tarjetas con el tema seleccionado.</p>
+                <button class="btn btn-primary" style="margin-top: 10px; padding: 8px 15px; font-size: 14px;">Botón de ejemplo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="btn-row">
+          <button class="btn btn-primary" id="saveTheme">Guardar Tema</button>
+          <button class="btn btn-secondary" id="resetTheme">Restaurar Por Defecto</button>
+        </div>
       </div>
-    </header>
-    <main class="config-container">
-      <!-- Muestra la foto actual o un placeholder -->
-      {% if session.user and session.user.foto %}
-        <img src="{{ session.user.foto }}" alt="Foto actual" class="profile-img">
-      {% else %}
-        <img src="https://via.placeholder.com/200" alt="Sin foto" class="profile-img">
-      {% endif %}
-      <!-- Formulario para actualizar datos -->
-      <form id="userDataForm" action="{{ url_for('update_user') }}" method="POST">
-        <label for="nombre">Nombre (opcional)</label>
-        <input type="text" id="nombre" name="nombre" placeholder="Ej. brian" value="{{ session.user.nombre if session.user else '' }}">
-        <label for="ubicacion">Ubicación (opcional)</label>
-        <input type="text" id="ubicacion" name="ubicacion" placeholder="Tu ubicación">
-        <button type="submit" class="fancy-btn">Guardar datos</button>
-      </form>
-      <!-- Formulario para cambiar la foto -->
-      <form id="fotoForm" action="{{ url_for('subir_foto') }}" method="POST" enctype="multipart/form-data">
-        <label for="foto">Elige tu foto:</label>
-        <input type="file" name="foto" id="foto" accept="image/*" required onchange="previewImage(event)">
-        <img id="preview" src="#" alt="Vista previa">
-        <button type="submit" class="fancy-btn">Subir foto</button>
-      </form>
-      <!-- Botones adicionales -->
-      <button class="toggle-btn" onclick="toggleMode()">Cambiar modo claro/oscuro</button>
-      <button class="link-btn" onclick="location.href='{{ url_for('principal') }}'">Volver a la página principal</button>
-    </main>
-    <script>
-      function previewImage(event) {
-        const preview = document.getElementById('preview');
-        preview.src = URL.createObjectURL(event.target.files[0]);
-        preview.style.display = 'block';
+      
+      <!-- Pestaña: Cuenta -->
+      <div class="tab-content" id="cuenta">
+        <h2>Configuración de Cuenta</h2>
+        
+        <div class="account-option">
+          <div class="account-option-info">
+            <h3>Cerrar Sesión</h3>
+            <p>Cierra tu sesión actual en este dispositivo.</p>
+          </div>
+          <button class="btn btn-secondary" onclick="window.location.href='{{ url_for('logout') }}'">Salir</button>
+        </div>
+        
+        <div class="account-option">
+          <div class="account-option-info">
+            <h3>Notificaciones</h3>
+            <p>Recibir notificaciones por email</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="notificationToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        {% if session.user.login_method != "google" %}
+        <div class="account-option">
+          <div class="account-option-info">
+            <h3>Datos de Actividad</h3>
+            <p>Vincular con Google Fit para un mejor seguimiento</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.location.href='{{ url_for('autorizar') }}'">
+            <i class="fab fa-google"></i> Vincular
+          </button>
+        </div>
+        {% endif %}
+        
+        <div class="account-option" style="background-color: rgba(255,0,0,0.1);">
+          <div class="account-option-info">
+            <h3 style="color: var(--error-color);">Eliminar Cuenta</h3>
+            <p>Esta acción no se puede deshacer.</p>
+          </div>
+          <button class="btn btn-danger" id="deleteAccountBtn">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Notificación -->
+  <div class="notification" id="notification">
+    <i class="fas fa-check-circle"></i>
+    <span id="notificationText">Cambios guardados correctamente</span>
+    <span class="notification-close" onclick="hideNotification()">×</span>
+  </div>
+  
+  <!-- Modal Confirmar Eliminación -->
+  <div id="deleteConfirmModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6);">
+    <div style="background-color: var(--card-color); margin: 15% auto; padding: 30px; width: 90%; max-width: 500px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+      <h2 style="color: var(--error-color);">¿Estás seguro?</h2>
+      <p style="margin: 20px 0; line-height: 1.6;">Esta acción eliminará permanentemente tu cuenta y todos los datos asociados. Esta operación no se puede deshacer.</p>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary" onclick="document.getElementById('deleteConfirmModal').style.display='none'">Cancelar</button>
+        <button class="btn btn-danger" onclick="deleteAccount()">Eliminar Cuenta</button>
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <p>&copy; 2025 VytalGym. Diseñado con pasión y dedicación.</p>
+  </footer>
+  
+  <script>
+    // Función para cambiar entre pestañas
+    document.addEventListener('DOMContentLoaded', function() {
+      // Cambio de pestañas
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const target = this.getAttribute('data-target');
+          
+          // Desactivar todas las pestañas
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          // Activar la pestaña seleccionada
+          this.classList.add('active');
+          document.getElementById(target).classList.add('active');
+        });
+      });
+      
+      // Previsualizar foto de perfil antes de subirla
+      const photoInput = document.getElementById('photoInput');
+      const profileImageDisplay = document.getElementById('profileImageDisplay');
+      
+      if (photoInput) {
+        photoInput.addEventListener('change', function() {
+          if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              profileImageDisplay.src = e.target.result;
+            };
+            reader.readAsDataURL(this.files[0]);
+            
+            // Subir automáticamente la imagen
+            const formData = new FormData();
+            formData.append('foto', this.files[0]);
+            
+            fetch('{{ url_for("subir_foto") }}', {
+              method: 'POST',
+              body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+              showNotification('Foto actualizada correctamente', 'success');
+            })
+            .catch(error => {
+              console.error('Error al subir la foto:', error);
+              showNotification('Error al subir la imagen', 'error');
+            });
+          }
+        });
       }
-      function toggleMode() {
-        document.body.classList.toggle('light-mode');
-        document.body.classList.toggle('dark-mode');
-        document.querySelector('main.config-container').classList.toggle('dark-mode');
+      
+      // Gestionar cambio de tema
+      const themeCards = document.querySelectorAll('.theme-card');
+      const html = document.documentElement;
+      let selectedTheme = localStorage.getItem('selected-theme') || 'default';
+      
+      // Establecer tema desde localStorage
+      html.setAttribute('data-theme', selectedTheme);
+      
+      // Marcar la tarjeta activa
+      themeCards.forEach(card => {
+        if (card.getAttribute('data-theme') === selectedTheme) {
+          card.classList.add('active');
+        }
+        
+        card.addEventListener('click', function() {
+          const theme = this.getAttribute('data-theme');
+          
+          // Quitar active de todas las tarjetas
+          themeCards.forEach(c => c.classList.remove('active'));
+          
+          // Añadir active a la tarjeta seleccionada
+          this.classList.add('active');
+          
+          // Aplicar tema
+          html.setAttribute('data-theme', theme);
+          selectedTheme = theme;
+          
+          // Actualizar la vista previa
+          updatePreview();
+        });
+      });
+      
+      // Botones para guardar/resetear tema
+      const saveThemeBtn = document.getElementById('saveTheme');
+      const resetThemeBtn = document.getElementById('resetTheme');
+      
+      saveThemeBtn.addEventListener('click', function() {
+        localStorage.setItem('selected-theme', selectedTheme);
+        showNotification('Tema guardado correctamente', 'success');
+      });
+      
+      resetThemeBtn.addEventListener('click', function() {
+        localStorage.removeItem('selected-theme');
+        selectedTheme = 'default';
+        html.setAttribute('data-theme', 'default');
+        
+        // Quitar active de todas las tarjetas
+        themeCards.forEach(c => c.classList.remove('active'));
+        
+        // Añadir active a la tarjeta default
+        document.querySelector('.theme-card[data-theme="default"]').classList.add('active');
+        
+        // Actualizar la vista previa
+        updatePreview();
+        
+        showNotification('Tema restablecido a valores predeterminados', 'info');
+      });
+      
+      // Función para actualizar la vista previa
+      function updatePreview() {
+        const previewHeader = document.querySelector('.site-preview-header');
+        const previewBody = document.querySelector('.site-preview-body');
+        const previewCard = document.querySelector('.site-preview-card');
+        
+        // Los colores se manejan automáticamente con las variables CSS
       }
-    </script>
-  </body>
+      
+      // Notificaciones
+      function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        
+        notification.className = 'notification';
+        notification.classList.add(type);
+        notificationText.textContent = message;
+        
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+          notification.classList.remove('show');
+        }, 3000);
+      }
+      
+      function hideNotification() {
+        document.getElementById('notification').classList.remove('show');
+      }
+      
+      // Modal de confirmación para eliminar cuenta
+      const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+      const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+      
+      deleteAccountBtn.addEventListener('click', function() {
+        deleteConfirmModal.style.display = 'block';
+      });
+      
+      window.onclick = function(event) {
+        if (event.target === deleteConfirmModal) {
+          deleteConfirmModal.style.display = 'none';
+        }
+      }
+      
+      function deleteAccount() {
+        // Aquí se podría implementar la eliminación de la cuenta
+        // Por ahora solo mostramos un mensaje
+        deleteConfirmModal.style.display = 'none';
+        showNotification('Esta funcionalidad estará disponible próximamente', 'warning');
+      }
+      
+      // Toggle de notificaciones
+      const notificationToggle = document.getElementById('notificationToggle');
+      const notificationEnabled = localStorage.getItem('notifications-enabled') === 'true';
+      
+      notificationToggle.checked = notificationEnabled;
+      
+      notificationToggle.addEventListener('change', function() {
+        localStorage.setItem('notifications-enabled', this.checked);
+        showNotification(this.checked ? 'Notificaciones activadas' : 'Notificaciones desactivadas', 'info');
+      });
+      
+      // Guardar todos los cambios
+      const saveAllConfigBtn = document.getElementById('saveAllConfig');
+      saveAllConfigBtn.addEventListener('click', function() {
+        // Guardar tema
+        localStorage.setItem('selected-theme', selectedTheme);
+        
+        // Enviar formulario de perfil si hay cambios
+        document.getElementById('profileForm').submit();
+        
+        showNotification('Todos los cambios guardados correctamente', 'success');
+      });
+    });
+  </script>
+</body>
 </html>

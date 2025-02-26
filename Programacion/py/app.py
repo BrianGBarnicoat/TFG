@@ -203,46 +203,67 @@ def configuracion():
 def ajustes():
     return render_template('ajustes.html')
 
-# Página para configurar la foto de perfil
-@app.route('/configurar_foto')
-def configurar_foto():
-    return render_template('configurar_foto.html')
-
-# API: Agregar evento al calendario (POST)
-@app.route('/agregar_evento', methods=['POST'])
-def evento():
-    return agregar_evento()
-
 # OAuth: Autorización y callback de Google
 @app.route('/autorizar')
 def autorizar():
+    """
+    Redirige al usuario al flujo de autorización OAuth de Google.
+    Esta función debe estar definida para que los enlaces a url_for('autorizar') funcionen.
+    """
     return google_autorizar()
 
+# Modificar el callback de OAuth para asegurar que se establece correctamente el método de login
 @app.route('/oauth2callback')
 def callback():
-    return oauth2callback()
+    # Obtener el resultado del callback de OAuth
+    result = oauth2callback()
+    
+    # Asegurarse de que el usuario se haya autenticado correctamente
+    if 'user' in session:
+        # Establecer explícitamente el método de login como Google
+        session['user']['login_method'] = 'google'
+        # Asegurarse de que la sesión se guarde correctamente
+        session.modified = True
+        print("Usuario autenticado con Google:", session['user'])
+    
+    return redirect(url_for('principal'))
 
-# Ruta para subir foto de perfil (POST)
+# Asegurarse de que configurar_foto permita acceso a usuarios de Google
+@app.route('/configurar_foto')
+def configurar_foto():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    # Imprimimos información para depurar
+    print("Usuario accediendo a configurar_foto:", session['user'])
+    print("Método de login:", session['user'].get('login_method', 'no especificado'))
+    
+    # Permitir acceso a todos los usuarios independientemente del método de login
+    return render_template('configurar_foto.html')
+
+# Modificar el manejo de la subida de fotos para usuarios de Google
 @app.route('/subir_foto', methods=['POST'])
 def subir_foto():
-    print(">>> Ruta /subir_foto llamada")
     if "user" not in session:
-        print(">>> No hay usuario en sesión")
-        return redirect(url_for('principal'))
+        return redirect(url_for('login'))
+    
+    # Si es un usuario de Google, simplemente redirigir a configurar_foto en lugar de intentar subir
+    if session["user"].get("login_method") == "google":
+        return redirect(url_for('configurar_foto'))
+    
+    # Resto del código para subir fotos para usuarios locales
     file = request.files.get('foto')
-    if not file:
-        print(">>> No se recibió objeto archivo.")
-        return redirect(url_for('principal'))
-    if file.filename.strip() == "":
-        print(">>> No se ha seleccionado ningún archivo.")
+    if not file or file.filename.strip() == "":
+        print(">>> Archivo no recibido o vacío.")
         return redirect(url_for('principal'))
     print(f">>> Archivo recibido: {file.filename}")
     filename = secure_filename(file.filename)
     email_key = session["user"]["email"].replace('.', '_')
-    bucket_name = "tfgbp-d9051.firebasestorage.app"  
+    # Cambiar a bucket terminado en .appspot.com
+    bucket_name = "tfgbp-d9051.appspot.com"  
     bucket = firebase_admin.storage.bucket(bucket_name)
     folder_path = f"fotos/{email_key}/"
-    # Crear un placeholder para la carpeta (virtual)
+    # Crear placeholder para la carpeta virtual
     dummy_blob = bucket.blob(folder_path + ".folder_placeholder")
     if not dummy_blob.exists():
         dummy_blob.upload_from_string("")
@@ -264,6 +285,8 @@ def subir_foto():
     print("URL de la foto:", nueva_url)
     rtdb.reference("usuarios").child(email_key).update({"foto": nueva_url})
     session["user"]["foto"] = nueva_url
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({"nueva_url": nueva_url})
     return redirect(url_for('principal'))
 
 @app.route('/update_user', methods=['POST'])
@@ -290,6 +313,45 @@ def update_user():
 def api_calendar_events():
     events = get_calendar_events()
     return jsonify(events)
+
+# Añadir la ruta para cambiar contraseña
+@app.route('/cambiar_password', methods=['GET', 'POST'])
+def cambiar_password():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    # No permitir cambio de contraseña para usuarios de Google
+    if session['user'].get('login_method') == 'google':
+        return redirect(url_for('configurar_foto'))
+    
+    if request.method == 'POST':
+        # Obtener datos del formulario
+        actual_password = request.form.get('actual_password')
+        nueva_password = request.form.get('nueva_password')
+        confirmar_password = request.form.get('confirmar_password')
+        
+        # Validaciones básicas
+        if not actual_password or not nueva_password or not confirmar_password:
+            return render_template('cambiar_password.html', error="Todos los campos son obligatorios")
+        
+        if nueva_password != confirmar_password:
+            return render_template('cambiar_password.html', error="Las nuevas contraseñas no coinciden")
+            
+        # Verificar contraseña actual
+        email_key = session["user"]["email"].replace('.', '_')
+        usuario_ref = database.child("usuarios").child(email_key)
+        usuario_data = usuario_ref.get()
+        
+        if not bcrypt.check_password_hash(usuario_data["password"], actual_password):
+            return render_template('cambiar_password.html', error="Contraseña actual incorrecta")
+            
+        # Actualizar contraseña
+        hashed_password = bcrypt.generate_password_hash(nueva_password).decode('utf-8')
+        usuario_ref.update({"password": hashed_password})
+        
+        return render_template('cambiar_password.html', success="Contraseña actualizada correctamente")
+    
+    return render_template('cambiar_password.html')
 
 # --------------------------------------------------------------------
 # Funciones para iniciar el servidor en segundo plano (opcional)
@@ -325,7 +387,7 @@ def mostrar_banner():
 <!-- * __  __           __             ___    ____                           * -->
 <!-- */\ \/\ \         /\ \__         /\_ \  /\  _`\                         * -->
 <!-- *\ \ \ \ \  __  __\ \ ,_\    __  \//\ \ \ \ \L\_\  __  __    ___ ___    * -->
-<!-- * \ \ \ \/\ \/\ \\ \ \/  /'__`\  \ \ \ \ \ \L_L /\ \/\ \ /' __` __`\  * -->
+<!-- * \ \ \/\ \/\ \\ \ \/  /'__`\  \ \ \ \ \ \L_L /\ \/\ \ /' __` __`\      * -->
 <!-- *  \ \ \_/ \ \ \_\ \\ \ \_/\ \L\.\_ \_\ \_\ \ \/, \ \ \_\ \/\ \/\ \/\ \ * -->
 <!-- *   \ `\___/\/`____ \\ \__\ \__/.\_\/\____\\ \____/\/`____ \ \_\ \_\ \_\* -->
 <!-- *    `\/__/  `/___/> \\/__/\/__/\/_/\/____/ \/___/  `/___/> \/_/\/_/\/_/* -->

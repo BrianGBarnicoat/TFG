@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Zona Fitness - Proyecto IA</title>
-  <!-- Enlaces a hojas de estilo y librerías externas -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
   <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
-  
+
   <style>
     /* ================= Global Design Styles ================= */
     body {
@@ -18,565 +17,192 @@
       color: #fff;
       scroll-behavior: smooth;
     }
-    
-    .titulo-seccion {
-    background-color: #001a33;
-    color: white;
-    padding: 1.5rem 2rem;  /* Aumenta el padding */
-    margin-top: 60px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: 40px;  /* Añade espacio después del título */
-}
 
+    /* Estilos propios de la página Fitness */
+    .titulo-seccion {
+      background-color: #001a33;
+      color: white;
+      padding: 1.5rem 2rem;
+      margin-top: 60px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 40px;
+    }
     .titulo-seccion h1 {
       margin: 0;
       font-size: 2rem;
     }
-
     .titulo-seccion p {
       margin: 0.5rem 0 0 0;
       color: #bbbbbb;
       font-size: 1rem;
     }
-
-    /* Ajusta el main-content */
     .main-content {
       margin-top: 40px;
       padding: 20px 40px;
     }
-
     .date-selector,
     .stats-section,
     .chart-section,
     .exercises-section,
     .news-section,
     .live-data-section {
-        margin-bottom: 40px;  /* Aumenta el espacio entre secciones */
-        background: #fff;
-        border-radius: 8px;
-        padding: 30px;  /* Aumenta el padding interno */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-
-    /* Header (nuevo menú) */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      background: rgba(0, 10, 20, 0.95);
-      color: #fff;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      transition: transform 0.3s ease-in-out;
-      z-index: 1000;
-    }
-    
-    header.hidden {
-      transform: translateY(-100%);
-    }
-    
-    header nav {
-      display: flex;
-      gap: 1.5rem;
-    }
-    
-    header nav a {
-      text-decoration: none;
-      color: #fff;
-      font-weight: 500;
-      transition: color 0.3s ease;
-    }
-    
-    .actions button.config-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: #FFB800;
-    color: black;
-    border: none;
-    border-radius: 20px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-weight: 500;
-    }
-
-    .actions button.config-btn:hover {
-    background-color: #e6a600;
-    }
-
-    .actions button.config-btn img {
-    width: 16px;
-    height: 16px;
-    }
-
-
-    header nav a:hover {
-      color: #58a058;
-    }
-    
-    header .actions {
-      display: flex;
-      gap: 1rem;
-    }
-    
-    header .actions button {
-      padding: 0.5rem 1rem;
-      border: none;
-      background-color: #1a1a1a;
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
+      margin-bottom: 40px;
+      background: #fff;
       border-radius: 8px;
-      transition: background-color 0.3s ease;
+      padding: 30px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      color: #000;
     }
-    
-    header .actions button:hover {
-      background-color: #58a058;
-    }
-    
-    /* ================= Hero / Banner ================= */
-    /* Si deseas que el banner de fitness se parezca a una “hero” */
-    .hero {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 80vh;
-      background-color: rgba(0, 0, 0, 0);
-      text-align: center;
-      padding: 2rem;
-      position: relative;
-    }
-    
-    .hero h1 {
-      font-size: 4rem;
-      font-weight: 700;
-      margin: 0;
-      letter-spacing: -1px;
-    }
-    
-    .hero p {
-      font-size: 1.5rem;
-      margin-top: 1rem;
-      color: #bbbbbb;
-    }
-    
-    .hero button {
-      margin-top: 2rem;
-      padding: 1rem 2rem;
-      font-size: 1.2rem;
-      border: none;
-      background-color: #004d40;
-      color: #fff;
-      cursor: pointer;
-      border-radius: 25px;
-      transition: background-color 0.3s ease, transform 0.3s ease;
-    }
-    
-    .hero button:hover {
-      background-color: #58a058;
-      transform: scale(1.1);
-    }
-    
-    /* ================= Secciones Generales ================= */
-    section {
-      padding: 3rem 2rem;
-      text-align: center;
-      background-color: transparent;
-    }
-    
-    section h2 {
-      font-size: 2.5rem;
-      color: #58a058;
-      margin-bottom: 1.5rem;
-      text-transform: uppercase;
-    }
-    
-    /* ================= Grid y Tarjetas ================= */
-    section .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
-    }
-    
-    section .grid .card {
-      background-color: rgba(28, 40, 28, 0.9);
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-      padding: 1.5rem;
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
-    
-    section .grid .card:hover {
-      transform: translateY(-10px) scale(1.05);
-    }
-    
-    section .grid .card img {
-      width: 100%;
-      height: 200px;
-      border-radius: 12px;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-    }
-    
-    section .grid .card img:hover {
-      transform: scale(1.1);
-    }
-    
-    section .grid .card h3 {
-      font-size: 1.5rem;
-      color: #fff;
-      margin: 1rem 0 0.5rem;
-    }
-    
-    section .grid .card p {
-      color: #ccc;
-      font-size: 1rem;
-    }
-    
-    /* ================= CTA Section ================= */
-    .cta-section {
-      padding: 3rem;
-      text-align: center;
-    }
-    
-    .cta-section h2 {
-      font-size: 2rem;
-      color: #58a058;
-      margin-bottom: 1rem;
-    }
-    
-    .cta-section p {
-      font-size: 1.2rem;
-      color: #ccc;
-      margin: 1rem 0;
-    }
-    
-    .cta-section button {
-      padding: 1rem 2rem;
-      border: none;
-      background-color: #004d40;
-      color: #fff;
-      font-size: 1rem;
-      border-radius: 25px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.3s ease;
-    }
-    
-    .cta-section button:hover {
-      background-color: #58a058;
-      transform: scale(1.1);
-    }
-    
-    /* ================= Social Section ================= */
-    .social .grid {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-    }
-    
-    .social .card {
-      background-color: rgba(28, 40, 28, 0.9);
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-      padding: 1rem;
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
-    
-    .social .card img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      margin-bottom: 1rem;
-    }
-    
-    .social .card button {
-      padding: 0.5rem 1rem;
-      border: none;
-      background-color: #004d40;
-      color: #fff;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.3s ease;
-    }
-    
-    .social .card button:hover {
-      background-color: #58a058;
-    }
-    
-    /* ================= Footer ================= */
-    footer {
-      text-align: center;
-      padding: 1.5rem;
-      background: rgba(0, 10, 20, 0.95);
-      color: #58a058;
-    }
-    
-    /* ================= Ajustes para Imágenes ================= */
-    img {
-      display: block;
-      margin: 0;
-      padding: 0;
-      border-radius: 50%;
-    }
-    
-    .rounded-logo {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-    }
-    
-    /* ================= Estilos Propios de la Página Fitness ================= */
-    .main-content {
-      padding: 40px 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .fitness-banner {
-      background: linear-gradient(to right, #56ccf2, #2f80ed);
-      color: #fff;
-      padding: 40px;
-      border-radius: 6px;
-      margin-bottom: 30px;
-    }
-    
-    .fitness-banner h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
-    
-    .fitness-banner p {
-      font-size: 1.1rem;
-      line-height: 1.5;
-    }
-    
     .date-selector {
-      background: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      align-items: flex-start;
-      color: #000;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
     }
-    
     .date-selector label {
-      font-weight: bold;
+      font-weight: 500;
     }
-    
     .date-selector input[type="date"] {
-      padding: 6px;
-      border-radius: 4px;
+      padding: 8px;
       border: 1px solid #ccc;
+      border-radius: 4px;
     }
-    
     .date-selector button {
-      background-color: #007bff;
-      color: #fff;
+      background: #007bff;
+      color: white;
       border: none;
-      padding: 10px 15px;
+      padding: 10px 20px;
       border-radius: 6px;
       cursor: pointer;
     }
-    
-    .date-selector button:hover {
-      background-color: #0056b3;
-    }
-    
-    .stats-section {
-      background: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      color: #000;
-    }
-    
-    .stats-section h2 {
+    h2 {
+      color: #001a33;
+      margin-top: 0;
       margin-bottom: 20px;
+      font-size: 1.8rem;
     }
-    
     .stats-cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 20px;
+      margin-bottom: 20px;
     }
-    
     .stat-card {
-      border: 1px solid #eee;
-      border-radius: 6px;
-      padding: 15px;
-      text-align: center;
       background: #f7f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      text-align: center;
+      padding: 20px 10px;
     }
-    
     .stat-card div {
       font-size: 2.2rem;
-      margin-bottom: 5px;
+      font-weight: 500;
       color: #007bff;
+      margin-bottom: 5px;
     }
-    
     .stat-card p {
+      margin: 0;
       color: #666;
     }
     
-    .chart-section {
-      background: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      color: #000;
-    }
-    
-    .chart-section h2 {
-      margin-bottom: 15px;
-    }
-    
-    .exercises-section {
-      background: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      color: #000;
-    }
-    
+    /* Estilos para secciones de ejercicios */
     .exercise-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      display: flex;
+      flex-direction: column;
       gap: 20px;
     }
-    
     .exercise-card {
-      border: 1px solid #eee;
-      border-radius: 6px;
-      overflow: hidden;
+      display: flex;
+      gap: 20px;
       background: #f7f9fa;
-    }
-    
-    .exercise-card img {
-      width: 100%;
-      height: auto;
-    }
-    
-    .exercise-card div {
-      padding: 15px;
-    }
-    
-    .exercise-card h3 {
-      color: #007bff;
-      margin-bottom: 8px;
-    }
-    
-    .news-section {
-      background: #fff;
       border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      color: #000;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .exercise-card img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+    }
+    .exercise-card div {
+      padding: 15px 20px 15px 0;
+    }
+    .exercise-card h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    .exercise-card p {
+      margin: 0;
+      line-height: 1.6;
+      color: #666;
     }
     
+    /* Noticias y artículos */
     .news-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
     }
-    
     .news-item {
-      border: 1px solid #eee;
-      border-radius: 6px;
-      padding: 15px;
       background: #f7f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
     }
-    
     .news-item h3 {
-      color: #007bff;
-      margin-bottom: 8px;
+      margin-top: 0;
+      color: #333;
+    }
+    .news-item p {
+      margin-bottom: 0;
+      color: #666;
     }
     
-    .live-data-section {
-      background: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      color: #000;
-    }
-    
+    /* Tabla de datos */
     .data-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      text-align: center;
     }
-    
     .data-table th, .data-table td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
     }
-    
     .data-table th {
-      background-color: #007bff;
-      color: #fff;
+      background-color: #f2f2f2;
+    }
+    .data-table tr:nth-child(even) {
+      background-color: #f9f9f9;
     }
     
+    /* Footer */
     .fitness-footer {
-      background: #24292e;
-      color: #fff;
+      margin-top: 40px;
       text-align: center;
-      padding: 15px;
-      border-radius: 6px;
-      margin-top: 30px;
+      color: #888;
+      font-size: 0.9rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 15px;
+      }
+      .exercise-card {
+        flex-direction: column;
+      }
+      .exercise-card img {
+        width: 100%;
+        height: 180px;
+      }
+      .exercise-card div {
+        padding: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Reemplaza el encabezado por el mismo que en Principal.html -->
-  <header>
-    <div class="header-left">
-      <h1><a href="{{ url_for('principal') }}" style="text-decoration: none; color: inherit;">VytalGym</a></h1>
-    </div>
-    <nav class="header-center">
-      <a href="{{ url_for('salud') }}">Salud</a>
-      <a href="{{ url_for('fitness') }}">Fitness</a>
-      <a href="{{ url_for('alimentacion') }}">Alimentación</a>
-      <a href="{{ url_for('precios') }}">Servicios</a>
-      <a href="{{ url_for('contacto') }}">Contacto</a>
-    </nav>
-    <div class="header-right">
-      {% if session.user %}
-        {% if session.user.foto %}
-          <img src="{{ session.user.foto }}"
-               alt="Foto de {{ session.user.nombre }}"
-               class="profile-img"
-               style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; cursor: pointer;"
-               {% if session.user.login_method == "local" %} onclick="location.href='{{ url_for('configurar_foto') }}';" {% endif %}>
-        {% else %}
-          <span>{{ session.user.nombre }}</span>
-          {% if session.user.login_method == "local" %}
-            <button onclick="location.href='{{ url_for('configurar_foto') }}';">Subir foto de perfil</button>
-          {% endif %}
-        {% endif %}
-      {% else %}
-        <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
-      {% endif %}
-    </div>
-  </header>
+  {% include 'partials/header.html' %}
   
   <!-- Contenedor principal de la página -->
   <div class="main-content">
