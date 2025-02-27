@@ -4,8 +4,14 @@
   <meta charset="UTF-8">
   <title>Página Principal - VytalGym</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- IMPORTANTE: Incluir tema global primero para que tenga prioridad absoluta -->
+  {% include 'partials/tema_global.html' %}
+  <!-- Fuente de Google Fonts -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/temas.css') }}">
   <!-- Fuente de Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
+  <!-- Incluir CSS externo -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/principal.css') }}">
   <style>
     /* ---------------- GLOBAL STYLES ---------------- */
     * {
@@ -15,71 +21,38 @@
     }
     body {
       font-family: 'Roboto', sans-serif;
-      background: linear-gradient(180deg, #001a33 0%, #002838 40%, #002f2f 100%);
-      color: #fff;
+      background: linear-gradient(180deg, var(--background-color) 0%, var(--background-color) 40%, var(--background-color) 100%);
+      color: var(--text-color);
       scroll-behavior: smooth;
+      padding-top: 60px; /* Ajustado para el header fijo */
+      margin: 0;
     }
     a {
       color: inherit;
       text-decoration: none;
     }
-    /* ---------------- HEADER ---------------- */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      background: rgba(0, 10, 20, 0.95);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-      transition: transform 0.3s ease;
-    }
-    header.hidden {
-      transform: translateY(-100%);
-    }
-    header .header-left h1 {
-      font-size: 1.8rem;
-      color: #58a058;
-    }
-    header nav a {
-      margin: 0 1rem;
-      font-weight: 500;
-      transition: color 0.3s ease;
-    }
-    header nav a:hover {
-      color: #58a058;
-    }
-    .header-right a.btn-login {
-      background-color: #004d40;
-      color: #fff;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      transition: background-color 0.3s, transform 0.3s;
-      font-weight: 500;
-      border: none;
-      cursor: pointer;
-    }
-    .header-right a.btn-login:hover {
-      background-color: #58a058;
-      transform: scale(1.05);
-    }
-
+    /* Eliminar estilos duplicados del header que están en header.html */
+    
     /* ---------------- HERO-SLIDER SECTION ---------------- */
     .hero-slider {
       position: relative;
-      min-height: 550px;
+      height: 70vh; /* Altura fija basada en el viewport */
+      min-height: 450px; /* Altura mínima */
+      max-height: 800px; /* Altura máxima */
       overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
+      margin-top: 0; /* Quitar margen superior */
     }
     .slider-image {
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0; 
+      left: 0; 
+      width: 100%;
+      height: 100%;
       background-size: cover;
       background-position: center;
       opacity: 0;
@@ -179,13 +152,13 @@
     .about .text h2 {
       font-size: 2.5rem;
       margin-bottom: 1rem;
-      color: #58a058;
+      color: var(--primary-color);
       text-transform: uppercase;
     }
     .about .text p {
       font-size: 1.2rem;
       line-height: 1.6;
-      color: #ccc;
+      color: var(--text-color);
       margin-bottom: 1rem;
     }
     .about .text button {
@@ -193,14 +166,14 @@
       padding: 0.8rem 1.5rem;
       font-size: 1rem;
       border: none;
-      background-color: #004d40;
-      color: #fff;
+      background-color: var(--secondary-color);
+      color: var(--text-color);
       border-radius: 25px;
       cursor: pointer;
       transition: background-color 0.3s, transform 0.3s;
     }
     .about .text button:hover {
-      background-color: #58a058;
+      background-color: var(--primary-color);
       transform: scale(1.05);
     }
 
@@ -212,7 +185,7 @@
     section h2 {
       font-size: 2.5rem;
       margin-bottom: 1.5rem;
-      color: #58a058;
+      color: var(--primary-color);
     }
     .grid {
       display: flex;
@@ -222,7 +195,7 @@
     }
     /* ---------------- CARDS ---------------- */
     .card {
-      background-color: #1e2b1e;
+      background-color: var(--card-color);
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.5);
       overflow: hidden;
@@ -239,7 +212,7 @@
       object-fit: cover;
     }
     .card h3 {
-      color: #58a058;
+      color: var(--primary-color);
       padding: 1rem 1rem 0.5rem;
       margin: 0;
       font-size: 1.4rem;
@@ -247,26 +220,26 @@
     .card p {
       padding: 0 1rem 1rem;
       margin: 0;
-      color: #fff;
+      color: var(--text-color);
       font-size: 1rem;
     }
     .card button {
       margin: 1rem;
       padding: 0.5rem 1rem;
       border: none;
-      background-color: #004d40;
-      color: #fff;
+      background-color: var(--secondary-color);
+      color: var(--text-color);
       border-radius: 20px;
       cursor: pointer;
       transition: background-color 0.3s;
     }
     .card button:hover {
-      background-color: #58a058;
+      background-color: var(--primary-color);
     }
 
     /* ---------------- CTA SECTION ---------------- */
     .cta-section {
-      background-color: #002f2f;
+      background-color: var(--card-color);
       padding: 3rem 2rem;
       text-align: center;
     }
@@ -369,40 +342,31 @@
       object-fit: contain;
       margin: 0 auto;
     }
+
+    /* Responsive para el hero slider */
+    @media (max-width: 768px) {
+      body {
+        padding-top: 50px; /* Menor padding en móviles */
+      }
+      
+      .hero-slider {
+        min-height: 400px; /* Reducir altura en móviles */
+      }
+      
+      .hero-content h1 {
+        font-size: 2rem; /* Texto más pequeño en móviles */
+      }
+      
+      .hero-content p {
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Incluir el header en lugar de tenerlo embebido para mantener consistencia -->
+  {% include 'partials/header.html' %}
 
-  <!-- HEADER -->
-  <header>
-    <div class="header-left">
-      <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
-    </div>
-    <nav class="header-center">
-      <a href="{{ url_for('salud') }}">Salud</a>
-      <a href="{{ url_for('fitness') }}">Fitness</a>
-      <a href="{{ url_for('alimentacion') }}">Alimentación</a>
-      <a href="{{ url_for('precios') }}">Servicios</a>
-      <a href="{{ url_for('contacto') }}">Contacto</a>
-    </nav>
-    <div class="header-right">
-      {% if session.user %}
-        {% if session.user.foto %}
-          <img src="{{ session.user.foto }}"
-               alt="Foto de {{ session.user.nombre }}"
-               class="profile-img"
-               style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; cursor: pointer;"
-               onclick="location.href='{{ url_for('configurar_foto') }}';">
-        {% else %}
-          <span>{{ session.user.nombre }}</span>
-          <button onclick="location.href='{{ url_for('configurar_foto') }}';">Subir foto de perfil</button>
-        {% endif %}
-      {% else %}
-        <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
-      {% endif %}
-    </div>
-  </header>
-  
   <!-- HERO SLIDER -->
   <section class="hero-slider fade-section" id="hero">
     <div class="slider-image active" 
@@ -554,19 +518,6 @@
 
   <!-- JAVASCRIPT: SLIDER Y FADE-IN SCROLL -->
   <script>
-    // HEADER: Ocultar/mostrar en scroll
-    let lastScrollTop = 0;
-    const header = document.querySelector("header");
-    window.addEventListener("scroll", function() {
-      let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight) {
-        header.classList.add("hidden");
-      } else {
-        header.classList.remove("hidden");
-      }
-      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-    });
-
     // HERO-SLIDER
     const slides = document.querySelectorAll('.slider-image');
     let currentSlide = 0;
@@ -614,6 +565,36 @@
     fadeSections.forEach(section => {
       observer.observe(section);
     });
+
+    // Verificar que el sistema de temas está funcionando
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log("Página Principal: Verificando sistema de temas...");
+      
+      // Verificar si el tema está aplicado
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 
+                         localStorage.getItem('selected-theme') || 
+                         'default';
+      
+      console.log("Tema actual:", currentTheme);
+      
+      // Imprimir algunas variables CSS para diagnóstico
+      const styles = getComputedStyle(document.documentElement);
+      console.log("--primary-color:", styles.getPropertyValue('--primary-color'));
+      console.log("--background-color:", styles.getPropertyValue('--background-color'));
+      console.log("--text-color:", styles.getPropertyValue('--text-color'));
+      
+      // Añadir detector para cambios de tema en tiempo real
+      document.addEventListener('themeChanged', function(e) {
+        console.log("Tema cambiado a:", e.detail.theme);
+      });
+      
+      document.addEventListener('colorChanged', function(e) {
+        console.log(`Color cambiado: ${e.detail.variable} = ${e.detail.value}`);
+      });
+    });
   </script>
+
+  <!-- Script para cambios de tema en tiempo real -->
+  <script src="{{ url_for('static', filename='js/direct-theme.js') }}"></script>
 </body>
 </html>

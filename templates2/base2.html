@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- ...existing head... -->
+    <meta charset="UTF-8">
+    <title>{% block title %}Mi Aplicación{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        @font-face {
+            font-family: 'Roboto';
+            src: url('/static/fonts/Roboto-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+    </style>
+    <!-- ...existing head... -->
+</head>
+<body>
+    {# ...existing body contenido (header, nav, etc.)... #}
+    {% block content %} 
+    <!-- Contenido de cada página -->
+    {% endblock %}
+    {# Cargar el JavaScript al final para garantizar que el DOM esté listo #}
+    <script src="/static/js/simple-theme.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <!-- Tus scripts de Firebase y tema -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+
+</body>
+</html>

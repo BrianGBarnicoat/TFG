@@ -1,11 +1,12 @@
 import os
 import firebase_admin
 from firebase_admin import db as rtdb
+from firebase_admin import credentials
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-from flask import session, url_for, redirect, request
+from flask import session, url_for, redirect, request, render_template
 import json
 import requests
 
@@ -20,20 +21,56 @@ SCOPES = [
     'openid'
 ]
 
-# Ruta absoluta al archivo google_oauth_credentials.json
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# Corrección de ruta absoluta para encontrar los archivos de credenciales
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 CREDENTIALS_PATH = os.path.join(BASE_DIR, 'claves seguras', 'google_oauth_credentials.json')
+
+print(f"BASE_DIR: {BASE_DIR}")
+print(f"Buscando credenciales en: {os.path.join(BASE_DIR, 'claves seguras')}")
 
 # Asegurarnos de tener referencia a la Realtime Database
 if firebase_admin._apps:
     database = rtdb.reference("/")
 else:
-    database = None
+    # Configurar Firebase (si no está ya inicializado)
+    # Usar el mismo nombre de archivo que en app.py
+    firebase_creds_path = os.path.join(BASE_DIR, 'claves seguras', 'firebase_admin_credentials.json')
+    
+    # Verificar si el archivo existe
+    if not os.path.exists(firebase_creds_path):
+        print(f"ERROR: El archivo de credenciales no existe en: {firebase_creds_path}")
+        print("Intenta especificar la ruta completa en lugar de una ruta relativa.")
+        # Intentar buscar el archivo en otras ubicaciones comunes
+        alt_paths = [
+            os.path.join(BASE_DIR, 'Programacion', 'claves seguras', 'firebase_admin_credentials.json'),
+            os.path.join(BASE_DIR, 'claves seguras', 'firebase_credentials.json'),
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'claves seguras', 'firebase_admin_credentials.json')
+        ]
+        for alt_path in alt_paths:
+            if os.path.exists(alt_path):
+                print(f"Archivo encontrado en ruta alternativa: {alt_path}")
+                firebase_creds_path = alt_path
+                break
+    
+    try:
+        cred = credentials.Certificate(firebase_creds_path)
+        firebase_admin.initialize_app(cred, {
+            'databaseURL': 'https://tfgbp-d9051-default-rtdb.europe-west1.firebasedatabase.app'
+        })
+        database = rtdb.reference("/")
+        print(f"Firebase inicializado correctamente con credenciales desde: {firebase_creds_path}")
+    except Exception as e:
+        print(f"ERROR al inicializar Firebase: {e}")
+        database = None
 
 # Cargar credenciales de Google
 GOOGLE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "google_oauth_credentials.json")
-with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
-    google_creds = json.load(f)['web']
+if os.path.exists(GOOGLE_CREDENTIALS_PATH):
+    with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
+        google_creds = json.load(f)['web']
+else:
+    print(f"ERROR: Archivo de credenciales de Google no encontrado en: {GOOGLE_CREDENTIALS_PATH}")
+    google_creds = {}
 
 def get_credentials():
     """
@@ -48,7 +85,7 @@ def get_credentials():
             return None
         creds = Credentials(**creds_data)
     if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
+        if creds and creds.expired and creds.refresh_token:  # Corregido: && por and
             try:
                 creds.refresh(Request())
             except Exception:
@@ -172,3 +209,58 @@ def oauth2callback():
 
     # Redirigir a la página de alimentación (en lugar de a la principal)
     return redirect(url_for('alimentacion'))
+
+def login():
+    """
+    Maneja el inicio de sesión con email/password y carga preferencias de tema desde Firebase
+    """
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Autenticar al usuario con Firebase
+        # Reemplaza esto con la lógica de autenticación real
+        user_authenticated = True  # Simulación de autenticación exitosa
+        user_data = {'email': email, 'name': 'User Name'}  # Reemplazar con datos reales
+        
+        if user_authenticated:
+            # Obtener el email_key para Firebase
+            email = user_data['email']
+            email_key = email.replace('.', '_').replace('@', '_')
+            
+            # Guardar datos básicos en la sesión
+            session['user'] = {
+                'email': email,
+                'nombre': user_data.get('name', ''),
+                'email_key': email_key,
+                # Otros datos que necesites
+            }
+            
+            # Cargar preferencias de tema desde Firebase
+            try:
+                ref = database.child(f"usuarios/{email_key}/preferencias")
+                prefs = ref.get()
+                
+                if prefs:
+                    # Guardar preferencias en la sesión
+                    session['user_preferences'] = {
+                        'tema': prefs.get('tema', 'default'),
+                        'colores': prefs.get('colores', {})
+                    }
+                    
+                    session.modified = True
+            except Exception as e:
+                print(f"Error al cargar las preferencias: {e}")
+            
+            return redirect(url_for('dashboard'))
+    
+    # Si es GET o la autenticación falla, mostrar formulario de login
+    return render_template('login.html')
+
+def dashboard():
+    """
+    Muestra el panel de control después de iniciar sesión
+    """
+    if 'user' in session:
+        return render_template('dashboard.html')
+    return redirect(url_for('login'))

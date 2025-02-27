@@ -1,0 +1,73 @@
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Configuración de apariencia</h4>
+                </div>
+                <div class="card-body">
+                    <div class="theme-config mb-4">
+                        <label for="themeSelect" class="form-label">Tema:</label>
+                        <select id="themeSelect" class="form-select">
+                            <option value="default">Por defecto</option>
+                            <option value="dark">Oscuro</option>
+                            <option value="light">Claro</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                    </div>
+
+                    <div class="color-config">
+                        <h5 class="mb-3">Colores personalizados</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <label class="me-2">Color primario:</label>
+                                    <input type="color" id="primaryColorPicker" class="form-control form-control-color">
+                                    <span class="color-dot ms-2" data-variable="--primary-color"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <label class="me-2">Color secundario:</label>
+                                    <input type="color" id="secondaryColorPicker" class="form-control form-control-color">
+                                    <span class="color-dot ms-2" data-variable="--secondary-color"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <label class="me-2">Color de fondo:</label>
+                                    <input type="color" id="backgroundColorPicker" class="form-control form-control-color">
+                                    <span class="color-dot ms-2" data-variable="--background-color"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <label class="me-2">Color de texto:</label>
+                                    <input type="color" id="textColorPicker" class="form-control form-control-color">
+                                    <span class="color-dot ms-2" data-variable="--text-color"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <label class="me-2">Color de cabecera:</label>
+                                    <input type="color" id="headerColorPicker" class="form-control form-control-color">
+                                    <span class="color-dot ms-2" data-variable="--header-bg"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <label class="me-2">Color de tarjetas:</label>
+                                    <input type="color" id="cardColorPicker" class="form-control form-control-color">
+                                    <span class="color-dot ms-2" data-variable="--card-bg"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button id="resetColorsBtn" class="btn btn-outline-secondary">Restablecer colores</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

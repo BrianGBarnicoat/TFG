@@ -1,94 +1,59 @@
 /**
- * SISTEMA ULTRALIGERO DE TEMAS - SOLUCIÓN DEFINITIVA
- * Cambia colores inmediatamente al seleccionarlos
+ * Utilidad optimizada para aplicar temas en tiempo real - VytalGym
  */
-
-// Inicialización y carga de colores (ejecutado inmediatamente)
 (function() {
-  console.log("DirectTheme: Inicializando...");
+  // Cargar tema del localStorage
+  function loadSavedTheme() {
+    const savedTheme = localStorage.getItem('selected-theme') || 'default';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    return savedTheme;
+  }
   
-  // Cargar tema base
-  const savedTheme = localStorage.getItem('selected-theme') || 'default';
-  document.documentElement.setAttribute('data-theme', savedTheme);
+  // Cargar colores personalizados
+  function loadCustomColors() {
+    const customColorPrefix = 'vytalgym_color_';
+    const colorVars = [
+      '--primary-color',
+      '--secondary-color',
+      '--background-color',
+      '--text-color',
+      '--header-bg',
+      '--card-color'
+    ];
+    
+    colorVars.forEach(variable => {
+      const savedValue = localStorage.getItem(customColorPrefix + variable);
+      if (savedValue) {
+        document.documentElement.style.setProperty(variable, savedValue);
+      }
+    });
+  }
   
-  // Variables de color que gestionamos
-  const colorVars = [
-    { css: '--primary-color', key: 'primaryColor', default: '#58a058' },
-    { css: '--secondary-color', key: 'secondaryColor', default: '#004d40' },
-    { css: '--header-bg', key: 'headerBg', default: '#000a14' },
-    { css: '--text-color', key: 'textColor', default: '#ffffff' },
-    { css: '--background-color', key: 'backgroundColor', default: '#001a33' }
-  ];
+  // Aplicar colores al cargar
+  document.addEventListener('DOMContentLoaded', function() {
+    const currentTheme = loadSavedTheme();
+    loadCustomColors();
+    
+    // Notificar a la consola para debugging
+    console.log(`Tema cargado: ${currentTheme}`);
+    
+    // Escuchar eventos del sistema de colores
+    document.addEventListener('colorChanged', function(e) {
+      console.log(`Color cambiado: ${e.detail.variable} = ${e.detail.value}`);
+    });
+    
+    document.addEventListener('colorsReset', function() {
+      console.log('Colores restablecidos al tema por defecto');
+    });
+  });
   
-  // Aplicar colores guardados
-  colorVars.forEach(color => {
-    const saved = localStorage.getItem(color.key);
-    if (saved) {
-      document.documentElement.style.setProperty(color.css, saved);
+  // Escuchar cambios en localStorage (para sincronizar entre pestañas)
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'selected-theme') {
+      document.documentElement.setAttribute('data-theme', e.newValue || 'default');
+    } else if (e.key && e.key.startsWith('vytalgym_color_')) {
+      const varName = e.key.replace('vytalgym_color_', '');
+      document.documentElement.style.setProperty(varName, e.newValue);
     }
   });
 })();
-
-// Cuando se cargue la página completa
-document.addEventListener('DOMContentLoaded', function() {
-  console.log("DirectTheme: DOM cargado, configurando color pickers");
-  
-  // Variables de color que gestionamos
-  const colorVars = [
-    { id: 'primaryColorPicker', css: '--primary-color', key: 'primaryColor', default: '#58a058' },
-    { id: 'secondaryColorPicker', css: '--secondary-color', key: 'secondaryColor', default: '#004d40' },
-    { id: 'headerColorPicker', css: '--header-bg', key: 'headerBg', default: '#000a14' },
-    { id: 'textColorPicker', css: '--text-color', key: 'textColor', default: '#ffffff' },
-    { id: 'backgroundColorPicker', css: '--background-color', key: 'backgroundColor', default: '#001a33' }
-  ];
-  
-  // Configurar cada selector de color
-  colorVars.forEach(config => {
-    const picker = document.getElementById(config.id);
-    if (!picker) {
-      console.warn(`DirectTheme: No se encontró el picker ${config.id}`);
-      return;
-    }
-    
-    // Establecer el valor inicial
-    const saved = localStorage.getItem(config.key);
-    const computed = getComputedStyle(document.documentElement).getPropertyValue(config.css).trim();
-    picker.value = saved || computed || config.default;
-    
-    // Aplicar color al cambiar
-    picker.addEventListener('input', function() {
-      const color = this.value;
-      
-      // Aplicar el color
-      document.documentElement.style.setProperty(config.css, color);
-      
-      // Guardar el color
-      localStorage.setItem(config.key, color);
-      
-      // Actualizar visual del dot
-      const dots = document.querySelectorAll('.color-dot');
-      dots.forEach(dot => {
-        if (dot.dataset.variable === config.css) {
-          dot.style.backgroundColor = color;
-        }
-      });
-      
-      console.log(`DirectTheme: Aplicado ${config.css}=${color}`);
-    });
-  });
-  
-  // Botón para restablecer colores
-  const resetBtn = document.getElementById('resetColorsBtn');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', function() {
-      // Eliminar colores guardados
-      colorVars.forEach(config => {
-        localStorage.removeItem(config.key);
-        document.documentElement.style.removeProperty(config.css);
-      });
-      
-      // Recargar la página para aplicar el tema base
-      location.reload();
-    });
-  }
-});

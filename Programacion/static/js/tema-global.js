@@ -1,466 +1,257 @@
 /**
  * Sistema global de temas para VytalGym
- * Este script se encarga de cargar las preferencias de tema del usuario desde la sesión
- * y aplicarlas a la página actual. También proporciona funciones para cambiar el tema
- * y guardar las preferencias en Firebase.
+ * Este script se encarga de aplicar el tema y colores personalizados
+ * desde sessionStorage a todas las páginas
  */
 
-// Ejecutar cuando el DOM esté completamente cargado
+// Ejecutar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-  console.log("Cargando sistema de temas global...");
-
-  // Obtener tema y colores guardados
-  let currentTheme = 'default';
-  try {
-    // Comprobar si el usuario está autenticado
-    const userEmail = document.querySelector('meta[name="user-email"]');
-    
-    if (userEmail) {
-      // Usuario autenticado
-      console.log("Estado de autenticación: Usuario autenticado (" + userEmail.content + ")");
-      
-      // Cargar tema desde la sesión (si existe)
-      const theme = sessionStorage.getItem('user-theme');
-      console.log("Cargando tema para usuario autenticado desde Firebase");
-      
-      if (theme) {
-        currentTheme = theme;
-        document.documentElement.setAttribute('data-theme', theme);
-        console.log("Tema de usuario cargado:", theme);
-      } else {
-        console.log("No hay tema definido para el usuario, usando 'default'");
-        document.documentElement.setAttribute('data-theme', 'default');
-      }
-      
-      // Cargar colores personalizados desde la sesión
-      applyCustomColorsFromSession();
-    } else {
-      // Usuario no autenticado
-      console.log("Estado de autenticación: Usuario no autenticado");
-      
-      // Cargar tema y colores desde localStorage
-      const savedTheme = localStorage.getItem('selected-theme');
-      if (savedTheme) {
-        currentTheme = savedTheme;
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        console.log("Tema local cargado:", savedTheme);
-      } else {
-        console.log("No hay tema guardado localmente, usando 'default'");
-        document.documentElement.setAttribute('data-theme', 'default');
-      }
-      
-      // Aplicar colores guardados en localStorage
-      applyCustomColorsFromLocalStorage();
-    }
-  } catch (error) {
-    console.error("Error al cargar tema:", error);
-    // Fallback al tema por defecto
-    document.documentElement.setAttribute('data-theme', 'default');
-  }
+  console.log("Inicializando sistema de temas global...");
   
-  // Si hay un selector de tema en la página
-  const themeSelect = document.getElementById('themeSelect');
-  if (themeSelect) {
-    themeSelect.value = currentTheme;
-    themeSelect.addEventListener('change', function() {
-      changeTheme(this.value);
-    });
-  }
+  // Aplicar tema al cargar la página
+  aplicarTemaGuardado();
   
-  // Si hay botones de tema en la página
-  const themeButtons = document.querySelectorAll('[data-theme-button]');
-  themeButtons.forEach(button => {
-    if (button.dataset.theme === currentTheme) {
-      button.classList.add('active');
-    }
-    
-    button.addEventListener('click', function() {
-      changeTheme(this.dataset.theme);
-      
-      // Quitar clase active de todos los botones
-      themeButtons.forEach(btn => btn.classList.remove('active'));
-      
-      // Añadir clase active al botón clickeado
-      this.classList.add('active');
-    });
-  });
+  // Buscar variables CSS personalizadas guardadas
+  aplicarColoresGuardados();
   
-  // Configurar selectores de colores personalizados
-  setupColorPickers();
+  // Iniciar escucha de cambios en tiempo real si Firebase está disponible
+  iniciarEscuchaRealtime();
+  
+  console.log("Sistema de temas inicializado correctamente");
 });
 
 /**
- * Aplica los colores personalizados guardados en sessionStorage
+ * Aplica el tema guardado en sessionStorage o localStorage
  */
-function applyCustomColorsFromSession() {
-  const cssVars = [
-    { name: '--primary-color', key: 'primaryColor' },
-    { name: '--secondary-color', key: 'secondaryColor' },
-    { name: '--header-bg', key: 'headerBg' },
-    { name: '--text-color', key: 'textColor' },
-    { name: '--background-color', key: 'backgroundColor' }
+function aplicarTemaGuardado() {
+  // Orden de prioridad: sessionStorage > localStorage > default
+  const tema = sessionStorage.getItem('user-theme') || 
+               localStorage.getItem('selected-theme') || 
+               'default';
+  
+  // Aplicar tema al elemento HTML
+  document.documentElement.setAttribute('data-theme', tema);
+  console.log(`Tema aplicado: ${tema}`);
+}
+
+/**
+ * Aplica los colores personalizados guardados
+ */
+function aplicarColoresGuardados() {
+  // Lista de variables CSS que pueden ser personalizadas
+  const variablesCss = [
+    'primaryColor', 'secondaryColor', 'textColor', 
+    'backgroundColor', 'headerBg', 'cardColor'
   ];
   
-  let hasCustomColors = false;
-  
-  cssVars.forEach(item => {
-    const savedValue = sessionStorage.getItem('user-' + item.name.replace('--', ''));
-    if (savedValue) {
-      document.documentElement.style.setProperty(item.name, savedValue);
-      hasCustomColors = true;
-      console.log(`Color personalizado cargado: ${item.name} = ${savedValue}`);
+  // Comprobar primero en sessionStorage (prioridad para usuario logueado)
+  variablesCss.forEach(variable => {
+    const sessionValue = sessionStorage.getItem(`user-${variable}`);
+    if (sessionValue) {
+      // Convertir nombre de variable a formato CSS
+      const cssVar = `--${variable.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+      document.documentElement.style.setProperty(cssVar, sessionValue);
+      console.log(`Color aplicado desde sessionStorage: ${cssVar} = ${sessionValue}`);
     }
   });
   
-  if (hasCustomColors) {
-    console.log("Colores personalizados aplicados desde la sesión");
-  }
-}
-
-/**
- * Aplica los colores personalizados guardados en localStorage
- */
-function applyCustomColorsFromLocalStorage() {
-  const cssVars = [
-    { name: '--primary-color', key: 'primaryColor' },
-    { name: '--secondary-color', key: 'secondaryColor' },
-    { name: '--header-bg', key: 'headerBg' },
-    { name: '--text-color', key: 'textColor' },
-    { name: '--background-color', key: 'backgroundColor' }
-  ];
-  
-  let hasCustomColors = false;
-  
-  cssVars.forEach(item => {
-    const savedValue = localStorage.getItem('custom-' + item.key);
-    if (savedValue) {
-      document.documentElement.style.setProperty(item.name, savedValue);
-      hasCustomColors = true;
-      console.log(`Color personalizado cargado de localStorage: ${item.name} = ${savedValue}`);
-    }
-  });
-  
-  if (hasCustomColors) {
-    console.log("Colores personalizados aplicados desde localStorage");
-  }
-}
-
-/**
- * Cambia el tema global y lo guarda
- * @param {string} theme - Nombre del tema a aplicar
- */
-function changeTheme(theme) {
-  // Aplicar tema
-  document.documentElement.setAttribute('data-theme', theme);
-  
-  // Guardar tema
-  const userEmail = document.querySelector('meta[name="user-email"]');
-  
-  if (userEmail) {
-    // Usuario autenticado, guardar en Firebase
-    sessionStorage.setItem('user-theme', theme);
-    guardarTema(theme);
-  } else {
-    // Usuario no autenticado, guardar en localStorage
-    localStorage.setItem('selected-theme', theme);
-  }
-  
-  console.log(`Tema cambiado a: ${theme}`);
-}
-
-/**
- * Guarda el tema del usuario en Firebase
- * @param {string} theme - Nombre del tema a guardar
- */
-function guardarTema(theme) {
-  fetch('/guardar_tema_usuario', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ tema: theme })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      console.log(`Tema ${theme} guardado en Firebase`);
-      if (typeof showNotification === 'function') {
-        showNotification(`Tema ${theme} aplicado`, 'success');
-      }
-    } else {
-      console.error('Error al guardar tema:', data.message);
-      if (typeof showNotification === 'function') {
-        showNotification('Error al guardar tema', 'error');
+  // Luego comprobar localStorage (para usuarios no logueados o preferencias locales)
+  variablesCss.forEach(variable => {
+    // Solo si no se encontró en sessionStorage
+    if (!sessionStorage.getItem(`user-${variable}`)) {
+      const localValue = localStorage.getItem(variable);
+      if (localValue) {
+        // Convertir nombre de variable a formato CSS
+        const cssVar = `--${variable.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+        document.documentElement.style.setProperty(cssVar, localValue);
+        console.log(`Color aplicado desde localStorage: ${cssVar} = ${localValue}`);
       }
     }
-  })
-  .catch(error => {
-    console.error('Error en la petición:', error);
-    if (typeof showNotification === 'function') {
-      showNotification('Error de conexión', 'error');
-    }
   });
 }
 
 /**
- * Aplica un color personalizado y lo guarda
- * @param {string} cssVar - Variable CSS (--primary-color)
- * @param {string} value - Valor del color (#RRGGBB)
+ * Inicia la escucha en tiempo real para cambios de tema en Firebase
  */
-function aplicarColor(cssVar, value) {
-  // Aplicar color
-  if (value === null) {
-    document.documentElement.style.removeProperty(cssVar);
-  } else {
-    document.documentElement.style.setProperty(cssVar, value);
+function iniciarEscuchaRealtime() {
+  // Verificar si estamos en una sesión autenticada y Firebase está disponible
+  const isLoggedIn = document.body.classList.contains('user-logged-in') || 
+                     document.querySelector('meta[name="user-email"]');
+  
+  if (!isLoggedIn || !window.firebase || !firebase.database) {
+    console.log("No se inicia escucha en tiempo real: Usuario no logueado o Firebase no disponible");
+    return;
   }
   
-  // Guardar color
-  const userEmail = document.querySelector('meta[name="user-email"]');
-  
-  if (userEmail) {
-    // Usuario autenticado, guardar en Firebase
-    if (value === null) {
-      sessionStorage.removeItem('user-' + cssVar.replace('--', ''));
-    } else {
-      sessionStorage.setItem('user-' + cssVar.replace('--', ''), value);
+  try {
+    // Obtener el email del usuario (para identificarlo en Firebase)
+    const userEmail = document.querySelector('meta[name="user-email"]').content;
+    if (!userEmail) {
+      console.warn("Email de usuario no disponible para escucha en tiempo real");
+      return;
     }
     
-    guardarColorFirebase(cssVar, value);
-  } else {
-    // Usuario no autenticado, guardar en localStorage
-    const storageKey = 'custom-' + cssVar.replace('--', '').replace('-', '');
+    // Convertir email a formato Firebase (reemplazando . y @)
+    const emailKey = userEmail.replace(/[\.\@]/g, '_');
     
-    if (value === null) {
-      localStorage.removeItem(storageKey);
-    } else {
-      localStorage.setItem(storageKey, value);
-    }
-  }
-  
-  return true;
-}
-
-/**
- * Guarda un color personalizado en Firebase
- * @param {string} cssVar - Variable CSS (--primary-color)
- * @param {string} value - Valor del color (#RRGGBB)
- */
-function guardarColorFirebase(cssVar, value) {
-  fetch('/guardar_color_usuario', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ variable: cssVar, valor: value })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      console.log(`Color ${cssVar} = ${value} guardado en Firebase`);
-      if (typeof showNotification === 'function') {
-        showNotification('Color guardado', 'success');
-      }
-    } else {
-      console.error('Error al guardar color:', data.message);
-      if (typeof showNotification === 'function') {
-        showNotification('Error al guardar color', 'error');
-      }
-    }
-  })
-  .catch(error => {
-    console.error('Error en la petición:', error);
-    if (typeof showNotification === 'function') {
-      showNotification('Error de conexión', 'error');
-    }
-  });
-}
-
-/**
- * Restablece todos los colores personalizados
- */
-function restablecerColores() {
-  // Eliminar todas las propiedades de estilo inline
-  document.documentElement.removeAttribute('style');
-  
-  const userEmail = document.querySelector('meta[name="user-email"]');
-  
-  if (userEmail) {
-    // Usuario autenticado, borrar en Firebase y sessionStorage
-    const cssVars = ['--primary-color', '--secondary-color', '--header-bg', '--text-color', '--background-color'];
+    // Referencia a las preferencias del usuario en Firebase
+    const prefsRef = firebase.database().ref(`usuarios/${emailKey}/preferencias`);
     
-    cssVars.forEach(cssVar => {
-      // Limpiar de sessionStorage
-      sessionStorage.removeItem('user-' + cssVar.replace('--', ''));
+    // Escuchar cambios en las preferencias
+    prefsRef.on('value', (snapshot) => {
+      const data = snapshot.val() || {};
+      console.log("Datos recibidos de Firebase:", data);
       
-      // Enviar null a Firebase para eliminar
-      guardarColorFirebase(cssVar, null);
-    });
-  } else {
-    // Usuario no autenticado, borrar de localStorage
-    const prefixes = ['primaryColor', 'secondaryColor', 'headerBg', 'textColor', 'backgroundColor'];
-    
-    prefixes.forEach(prefix => {
-      localStorage.removeItem('custom-' + prefix);
-    });
-  }
-  
-  if (typeof showNotification === 'function') {
-    showNotification('Colores restablecidos', 'info');
-  }
-  
-  return true;
-}
-
-/**
- * Configura los selectores de color en la página
- */
-function setupColorPickers() {
-  // Detectar si estamos en la página de configuración
-  const configContainer = document.querySelector('.config-container');
-  if (configContainer) {
-    console.log("Detectada página de configuración, configurando controles");
-    
-    // Hacer clic en una tarjeta de tema modifica el tema
-    const themeCards = document.querySelectorAll('.theme-card');
-    if (themeCards.length > 0) {
-      themeCards.forEach(card => {
-        card.addEventListener('click', function() {
-          const theme = this.getAttribute('data-theme');
-          if (theme) {
-            // Quitar selección de todas las tarjetas
-            themeCards.forEach(c => c.classList.remove('active'));
-            // Marcar esta como activa
-            this.classList.add('active');
-            // Aplicar tema
-            document.documentElement.setAttribute('data-theme', theme);
-          }
-        });
-      });
-    }
-    
-    // Configurar pickers de color individuales
-    const pickers = [
-      { id: 'primaryColorPicker', variable: '--primary-color' },
-      { id: 'secondaryColorPicker', variable: '--secondary-color' },
-      { id: 'headerBgPicker', variable: '--header-bg' },
-      { id: 'textColorPicker', variable: '--text-color' },
-      { id: 'backgroundColorPicker', variable: '--background-color' }
-    ];
-    
-    pickers.forEach(picker => {
-      const element = document.getElementById(picker.id);
-      if (element) {
-        console.log("Picker configurado:", picker.id);
+      // Si hay un tema, aplicarlo
+      if (data.tema) {
+        const nuevoTema = data.tema;
+        const temaActual = document.documentElement.getAttribute('data-theme');
         
-        // Valor inicial desde la variable CSS actual
-        const computedStyle = getComputedStyle(document.documentElement);
-        const currentValue = computedStyle.getPropertyValue(picker.variable).trim();
-        if (currentValue) {
-          element.value = rgbToHex(currentValue);
-        }
-        
-        // Escuchar cambios
-        element.addEventListener('input', function() {
-          document.documentElement.style.setProperty(picker.variable, this.value);
+        if (nuevoTema !== temaActual) {
+          document.documentElement.setAttribute('data-theme', nuevoTema);
+          console.log(`Tema actualizado desde Firebase: ${nuevoTema}`);
           
-          // Actualizar también los dots de colores
-          const dots = document.querySelectorAll(`.color-dot[data-variable="${picker.variable}"]`);
-          dots.forEach(dot => {
-            dot.style.backgroundColor = this.value;
-          });
+          // Notificar el cambio
+          document.dispatchEvent(new CustomEvent('themeChanged', {
+            detail: { theme: nuevoTema, source: 'firebase' }
+          }));
+        }
+      }
+      
+      // Si hay colores personalizados, aplicarlos
+      if (data.colores) {
+        Object.entries(data.colores).forEach(([key, value]) => {
+          const cssVar = `--${key.replace(/_/g, '-')}`;
+          document.documentElement.style.setProperty(cssVar, value);
+          
+          // Guardar en sessionStorage para consistencia
+          const storageKey = `user-${key.replace(/_([a-z])/g, (_, char) => char.toUpperCase())}`;
+          sessionStorage.setItem(storageKey, value);
+          
+          console.log(`Color actualizado desde Firebase: ${cssVar} = ${value}`);
+          
+          // Notificar el cambio
+          document.dispatchEvent(new CustomEvent('colorChanged', {
+            detail: { variable: cssVar, value: value, source: 'firebase' }
+          }));
         });
       }
     });
     
-    // Botón para aplicar colores
-    const applyColorsBtn = document.getElementById('applyColors');
-    if (applyColorsBtn) {
-      applyColorsBtn.addEventListener('click', function() {
-        pickers.forEach(picker => {
-          const element = document.getElementById(picker.id);
-          if (element) {
-            aplicarColor(picker.variable, element.value);
-          }
-        });
-        
-        if (typeof showNotification === 'function') {
-          showNotification('Colores aplicados correctamente', 'success');
-        }
-      });
-    }
-    
-    // Botón para resetear colores
-    const resetColorsBtn = document.getElementById('resetColors');
-    if (resetColorsBtn) {
-      resetColorsBtn.addEventListener('click', function() {
-        if (restablecerColores()) {
-          // Resetear también los inputs de color
-          setTimeout(() => {
-            pickers.forEach(picker => {
-              const element = document.getElementById(picker.id);
-              if (element) {
-                const computedStyle = getComputedStyle(document.documentElement);
-                const currentValue = computedStyle.getPropertyValue(picker.variable).trim();
-                if (currentValue) {
-                  element.value = rgbToHex(currentValue);
-                }
-              }
-            });
-          }, 100);
-        }
-      });
-    }
+    console.log(`Escucha en tiempo real iniciada para usuario: ${emailKey}`);
+  } catch (error) {
+    console.error("Error al iniciar escucha en tiempo real:", error);
   }
 }
 
 /**
- * Convierte un valor RGB a formato hexadecimal
- * @param {string} rgb - String en formato "rgb(r, g, b)" o hexadecimal
- * @returns {string} - Color en formato hexadecimal #RRGGBB
+ * Guarda un color personalizado tanto en sessionStorage como en CSS
  */
-function rgbToHex(rgb) {
-  // Si ya es hexadecimal o un nombre de color, devolverlo
-  if (rgb.startsWith('#')) {
-    return rgb;
+window.guardarColorPersonalizado = function(variable, valor) {
+  // Guardar en sessionStorage
+  const storageKey = `user-${variable.replace('--', '').replace(/-([a-z])/g, (_, char) => char.toUpperCase())}`;
+  sessionStorage.setItem(storageKey, valor);
+  
+  // Aplicar inmediatamente
+  document.documentElement.style.setProperty(variable, valor);
+  
+  console.log(`Color guardado: ${variable} = ${valor}`);
+  
+  // Intentar guardar en servidor si el usuario está logueado
+  const isLoggedIn = document.body.classList.contains('user-logged-in') || 
+                     document.querySelector('meta[name="user-email"]');
+  
+  if (isLoggedIn) {
+    fetch('/guardar_color_usuario', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        variable: variable,
+        valor: valor
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        console.log(`Color guardado en servidor: ${variable}`);
+      } else {
+        console.warn(`Error al guardar color en servidor: ${data.message}`);
+      }
+    })
+    .catch(error => {
+      console.error("Error al guardar color en servidor:", error);
+    });
   }
   
-  // Intentar extraer los valores RGB
-  const rgbRegex = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/;
-  const match = rgbRegex.exec(rgb);
-  
-  if (match) {
-    const r = parseInt(match[1], 10);
-    const g = parseInt(match[2], 10);
-    const b = parseInt(match[3], 10);
-    
-    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-  }
-  
-  // Si no se pudo convertir, devolver un color por defecto
-  return '#000000';
-}
+  return true;
+};
 
-// Exponer funciones globalmente
-window.changeTheme = changeTheme;
-window.aplicarColor = aplicarColor;
-window.restablecerColores = restablecerColores;
-window.guardarTema = guardarTema;
-
-// Agregar una clase 'js-loaded' al body para indicar que el script se ha cargado correctamente
-document.body.classList.add('js-loaded');
-
-// Definir objeto para el administrador de colores
+/**
+ * API para el gestor de colores 
+ */
 window.ColorManager = {
-  applyColors: function(colorsObject) {
+  applyColors: function(colorObject) {
     let count = 0;
-    for (const [cssVar, value] of Object.entries(colorsObject)) {
-      if (aplicarColor(cssVar, value)) {
+    for (const [variable, value] of Object.entries(colorObject)) {
+      if (window.guardarColorPersonalizado(variable, value)) {
         count++;
       }
     }
     return count;
   },
   
-  resetAllColors: restablecerColores
+  resetAllColors: function() {
+    const variablesCss = [
+      'primaryColor', 'secondaryColor', 'textColor', 
+      'backgroundColor', 'headerBg', 'cardColor'
+    ];
+    
+    // Limpiar sessionStorage
+    variablesCss.forEach(variable => {
+      sessionStorage.removeItem(`user-${variable}`);
+    });
+    
+    // Limpiar localStorage si el usuario no está logueado
+    const isLoggedIn = document.body.classList.contains('user-logged-in') || 
+                       document.querySelector('meta[name="user-email"]');
+    
+    if (!isLoggedIn) {
+      variablesCss.forEach(variable => {
+        localStorage.removeItem(variable);
+      });
+    }
+    
+    // Restablecer al tema actual
+    aplicarTemaGuardado();
+    
+    // Si el usuario está logueado, resetear también en el servidor
+    if (isLoggedIn) {
+      fetch('/resetear_colores_usuario', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          console.log("Colores restablecidos en servidor");
+          setTimeout(() => location.reload(), 500); // Recargar para aplicar cambios
+        }
+      })
+      .catch(error => {
+        console.error("Error al restablecer colores en servidor:", error);
+      });
+    } else {
+      // Recargar la página para aplicar el tema base
+      location.reload();
+    }
+    
+    console.log("Colores personalizados restablecidos");
+    return true;
+  }
 };

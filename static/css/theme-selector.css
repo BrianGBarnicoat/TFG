@@ -1,0 +1,35 @@
+.theme-config,
+.color-config {
+  margin-bottom: 20px;
+}
+
+.color-dot {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+.form-control-color {
+  width: 40px;
+  padding: 0;
+  height: 30px;
+}
+
+.color-config label {
+  margin-bottom: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+#resetColorsBtn {
+  margin-top: 10px;
+}
+
+.theme-selector-title {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}

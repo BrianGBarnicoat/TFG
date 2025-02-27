@@ -13,6 +13,7 @@ from flask import Flask, render_template, request, session, redirect, url_for, s
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
+import functools
 
 # Importar módulos auxiliares (estos archivos pueden mantenerse separados)
 from auth import autorizar as google_autorizar, oauth2callback
@@ -159,6 +160,15 @@ def cargar_preferencias_firebase(email_key):
 # --------------------------------------------------------------------
 # Rutas de la Aplicación
 # --------------------------------------------------------------------
+
+# Definición del decorador login_required
+def login_required(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Página principal
 @app.route('/')
@@ -349,15 +359,16 @@ def callback():
 
 # Configurar foto
 @app.route('/configurar_foto')
+@login_required
 def configurar_foto():
-    if 'user' not in session:
-        return redirect(url_for('login'))
+    # Obtener el usuario actual y su email_key
+    usuario = session.get('user', {})
     
     # Imprimimos información para depurar
     print("Usuario accediendo a configurar_foto:", session['user'])
     print("Método de login:", session['user'].get('login_method', 'no especificado'))
     
-    # Permitir acceso a todos los usuarios independientemente del método de login
+    # Renderizar la plantilla
     return render_template('configurar_foto.html')
 
 # Subir foto
@@ -478,11 +489,9 @@ def cambiar_password():
 
 # Guardar tema de usuario
 @app.route('/guardar_tema_usuario', methods=['POST'])
+@login_required
 def guardar_tema_usuario():
     """Guarda el tema del usuario en Firebase Realtime Database"""
-    if 'user' not in session:
-        return jsonify({'status': 'error', 'message': 'No autenticado'})
-    
     data = request.json
     tema = data.get('tema', 'default')
     
@@ -556,6 +565,44 @@ def guardar_color_usuario():
     except Exception as e:
         print(f"Error al guardar color: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)})
+
+# Nueva ruta para guardar múltiples colores a la vez
+@app.route('/guardar_colores_usuario', methods=['POST'])
+@login_required
+def guardar_colores_usuario():
+    """Guarda múltiples colores personalizados en Firebase Realtime Database"""
+    data = request.json
+    colores = data.get('colores', {})
+    
+    if not colores:
+        return jsonify({"status": "error", "message": "No se proporcionaron colores"}), 400
+    
+    try:
+        email_key = session['user']['email'].replace('.', '_')
+        
+        # Preparar datos para Firebase (convertir nombres CSS)
+        firebase_colores = {}
+        for variable, valor in colores.items():
+            # Convertir nombre CSS a formato Firebase (--primary-color -> primary_color)
+            firebase_key = variable.replace('--', '').replace('-', '_')
+            firebase_colores[firebase_key] = valor
+        
+        # Guardar en Firebase
+        colores_ref = database.child("usuarios").child(email_key).child("preferencias").child("colores")
+        colores_ref.update(firebase_colores)
+        
+        # Actualizar sesión
+        if 'user_preferences' not in session:
+            session['user_preferences'] = {'tema': 'default', 'colores': {}}
+            
+        # Actualizar colores en la sesión
+        session['user_preferences']['colores'].update(colores)
+        session.modified = True
+        
+        return jsonify({"status": "success", "message": "Colores guardados correctamente"})
+    except Exception as e:
+        print(f"Error al guardar colores: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/sincronizar_preferencias', methods=['POST'])
 def sincronizar_preferencias():
@@ -640,6 +687,30 @@ def diagnostico_firebase():
             'message': f'Error: {str(e)}',
             'recommendation': 'Verifica credenciales y permisos de Firebase'
         })
+
+@app.route('/resetear_colores_usuario', methods=['POST'])
+@login_required
+def resetear_colores_usuario():
+    """Elimina todos los colores personalizados del usuario en Firebase"""
+    try:
+        # Obtener email del usuario
+        email_key = session['user']['email'].replace('.', '_')
+        
+        # Eliminar colores en Firebase
+        ref = database.child("usuarios").child(email_key).child("preferencias").child("colores")
+        ref.delete()
+        
+        # Actualizar sesión
+        if 'user_preferences' in session and 'colores' in session['user_preferences']:
+            session['user_preferences']['colores'] = {}
+            session.modified = True
+        
+        print(f"Colores restablecidos para usuario {email_key}")
+        return jsonify({"status": "success", "message": "Colores restablecidos correctamente"})
+        
+    except Exception as e:
+        print(f"Error al restablecer colores: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # --------------------------------------------------------------------
 # Funciones para iniciar el servidor

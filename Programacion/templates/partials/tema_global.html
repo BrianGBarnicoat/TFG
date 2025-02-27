@@ -29,6 +29,48 @@
   {% else %}
     console.log("No hay preferencias en la sesión para este usuario, usando valores predeterminados");
   {% endif %}
+  
+  // Sincronización en tiempo real de temas (del tema_global2)
+  function sincronizarTemasRealtime() {
+    if (!firebase || !firebase.database) {
+      console.error("Firebase no está disponible para sincronización en tiempo real");
+      return;
+    }
+    
+    const userEmail = document.querySelector('meta[name="user-email"]').content;
+    if (!userEmail) return;
+    
+    const emailKey = userEmail.replace(/[@.]/g, '_');
+    
+    // Escuchar cambios en las preferencias del usuario
+    const prefsRef = firebase.database().ref(`usuarios/${emailKey}/preferencias`);
+    
+    prefsRef.on('value', (snapshot) => {
+      const data = snapshot.val() || {};
+      
+      // Actualizar tema si ha cambiado
+      if (data.tema) {
+        document.documentElement.setAttribute('data-theme', data.tema);
+        sessionStorage.setItem('user-theme', data.tema);
+        console.log(`Tema actualizado en tiempo real: ${data.tema}`);
+      }
+      
+      // Actualizar colores si han cambiado
+      if (data.colores) {
+        Object.entries(data.colores).forEach(([key, value]) => {
+          const cssVar = `--${key.replace(/_/g, '-')}`;
+          document.documentElement.style.setProperty(cssVar, value);
+          sessionStorage.setItem(`user-${cssVar.replace('--', '')}`, value);
+          console.log(`Color actualizado en tiempo real: ${cssVar} = ${value}`);
+        });
+      }
+    });
+  }
+  
+  // Activar sincronización en tiempo real después de cargar Firebase
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(sincronizarTemasRealtime, 1000); // Esperar a que Firebase se inicialice
+  });
 </script>
 {% else %}
 <script>
@@ -95,3 +137,55 @@
 
 <!-- Cargar el script principal después de configurar las variables -->
 <script src="{{ url_for('static', filename='js/tema-global.js') }}"></script>
+
+<style>
+  /* Variables de tema por defecto - Versión optimizada */
+  :root {
+    --primary-color: #58a058;
+    --secondary-color: #004d40;
+    --background-color: rgba(28, 40, 28, 0.9);
+    --text-color: #ffffff;
+    --header-bg: rgba(0, 10, 20, 0.95);
+    --card-color: rgba(40, 50, 40, 0.9);
+    --accent-color: #3e7b3e;
+    --error-color: #ff5252;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --info-color: #2196f3;
+    
+    /* Gradientes para fondos */
+    --gradient-start: rgba(28, 40, 28, 0.95);
+    --gradient-middle: rgba(25, 35, 25, 0.9);
+    --gradient-end: rgba(20, 30, 20, 0.95);
+  }
+  
+  /* Temas principales - Versión mínima */
+  [data-theme="dark"] {
+    --primary-color: #388e3c;
+    --secondary-color: #00352c;
+    --background-color: rgba(20, 20, 20, 0.95);
+    --text-color: #e0e0e0;
+    --header-bg: rgba(10, 10, 10, 0.98);
+    --card-color: rgba(30, 30, 30, 0.95);
+    --accent-color: #2e5e2e;
+    --gradient-start: rgba(20, 20, 20, 0.95);
+    --gradient-middle: rgba(15, 15, 15, 0.9);
+    --gradient-end: rgba(10, 10, 10, 0.95);
+  }
+  
+  [data-theme="light"] {
+    --primary-color: #4CAF50;
+    --secondary-color: #2E7D32;
+    --background-color: rgba(240, 240, 240, 0.95);
+    --text-color: #333333;
+    --header-bg: rgba(255, 255, 255, 0.98);
+    --card-color: rgba(255, 255, 255, 0.95);
+    --accent-color: #81C784;
+    --gradient-start: rgba(240, 240, 240, 0.95);
+    --gradient-middle: rgba(230, 230, 230, 0.9);
+    --gradient-end: rgba(225, 225, 225, 0.95);
+  }
+</style>
+
+<!-- Carga del script optimizado para temas -->
+<script src="{{ url_for('static', filename='js/direct-theme.js') }}"></script>

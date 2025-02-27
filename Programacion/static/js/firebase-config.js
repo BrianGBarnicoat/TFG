@@ -1,47 +1,44 @@
 /**
  * Configuración de Firebase para VytalGym
- * Permite la integración directa con Firebase Realtime Database
+ * Este archivo inicializa la conexión con Firebase en el lado del cliente
  */
 
-// Configuración de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyC_qzTHT0MG7vWa5LsWEj4Lw_MOlRK-XA0",
-  authDomain: "tfgbp-d9051.firebaseapp.com",
-  databaseURL: "https://tfgbp-d9051-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "tfgbp-d9051",
-  storageBucket: "tfgbp-d9051.appspot.com",
-  messagingSenderId: "490431681478",
-  appId: "1:490431681478:web:bcbdae975d4004e6399c29"
-};
-
-// Inicializar Firebase si está disponible
-let firebaseInitialized = false;
-
-function inicializarFirebase() {
-  if (typeof firebase !== 'undefined') {
-    // Evitar inicializar Firebase varias veces
-    if (!firebase.apps || !firebase.apps.length) {
-      try {
-        firebase.initializeApp(firebaseConfig);
-        firebaseInitialized = true;
-        console.log("✅ Firebase inicializado correctamente");
-      } catch (e) {
-        console.error("❌ Error al inicializar Firebase:", e);
-        return false;
-      }
-    } else {
-      firebaseInitialized = true;
-      console.log("✅ Firebase ya estaba inicializado");
-    }
-    return true;
-  } else {
-    console.error("❌ Firebase SDK no está cargado");
-    return false;
+(function() {
+  // Comprobar si Firebase ya está inicializado
+  if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+    console.log("Firebase ya está inicializado");
+    return;
   }
-}
 
-// Intentar inicializar Firebase inmediatamente
-inicializarFirebase();
+  // Configuración de Firebase (reemplazar con tus propios valores)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBz733UfE2EFlvPnRAF_FXKHdxRmBjml-Q",
+    authDomain: "tfgbp-d9051.firebaseapp.com",
+    databaseURL: "https://tfgbp-d9051-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "tfgbp-d9051",
+    storageBucket: "tfgbp-d9051.appspot.com",
+    messagingSenderId: "83852378125",
+    appId: "1:83852378125:web:a7cc8ff0cfebfe3d19be1f"
+  };
+
+  try {
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase inicializado correctamente");
+    
+    // Comprobar conexión
+    const connectedRef = firebase.database().ref(".info/connected");
+    connectedRef.on("value", (snap) => {
+      if (snap.val() === true) {
+        console.log("Conectado a Firebase Realtime Database");
+      } else {
+        console.log("No conectado a Firebase Realtime Database");
+      }
+    });
+  } catch (error) {
+    console.error("Error al inicializar Firebase:", error);
+  }
+})();
 
 // Función para guardar tema directamente en Firebase
 function guardarTemaEnFirebase(emailKey, tema) {
