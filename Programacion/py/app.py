@@ -353,6 +353,17 @@ def cambiar_password():
     
     return render_template('cambiar_password.html')
 
+# Nuevo endpoint para crear evento en Google Calendar
+@app.route('/api/calendar/event/create', methods=['POST'])
+def api_calendar_event_create():
+    return agregar_evento()
+
+# Nuevo endpoint para borrar evento en Google Calendar
+@app.route('/api/calendar/event/delete', methods=['POST'])
+def api_calendar_event_delete():
+    from calendar_api import borrar_evento
+    return borrar_evento()
+
 # --------------------------------------------------------------------
 # Funciones para iniciar el servidor en segundo plano (opcional)
 # --------------------------------------------------------------------

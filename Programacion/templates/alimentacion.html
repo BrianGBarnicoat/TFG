@@ -287,6 +287,12 @@
   </div>
 </div>
 
+<!-- Menú contextual oculto con estilo acorde a la página -->
+<div id="context-menu" style="position: absolute; display: none; background: #001a33; color: #fff; border: 1px solid #005bb5; z-index:1000; border-radius: 4px;">
+  <div id="cm-create" style="padding: 8px; cursor: pointer;">Crear Evento</div>
+  <div id="cm-delete" style="padding: 8px; cursor: pointer;">Borrar Evento</div>
+</div>
+
 <script>
 // Usar el mes actual y variable global para conservar los eventos
 let currentDate = new Date();
@@ -363,6 +369,8 @@ function renderCalendar(date, events = []) {
           cell.appendChild(evDiv);
       }
   });
+  // Enlazar menú contextual a las celdas actualizadas
+  bindContextMenu();
 }
 
 function loadGoogleEvents() {
@@ -384,9 +392,91 @@ function loadGoogleEvents() {
 }
 
 function fetchAndRenderCalendar() {
-  // Si existen eventos cargados, se usan, sino se renderiza sin eventos.
   renderCalendar(currentDate, loadedEvents || []);
 }
+
+function bindContextMenu() {
+  document.querySelectorAll('td[data-date]').forEach(cell => {
+    cell.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      const date = this.getAttribute('data-date');
+      const contextMenu = document.getElementById('context-menu');
+      contextMenu.style.top = e.pageY + 'px';
+      contextMenu.style.left = e.pageX + 'px';
+      contextMenu.style.display = 'block';
+      contextMenu.setAttribute('data-date', date);
+    });
+  });
+}
+
+// Ocultar el menú contextual al hacer click fuera
+document.addEventListener('click', () => {
+  document.getElementById('context-menu').style.display = 'none';
+});
+
+// Acción para crear un evento
+document.getElementById('cm-create').addEventListener('click', () => {
+  const contextMenu = document.getElementById('context-menu');
+  const dateStr = contextMenu.getAttribute('data-date');
+  const titulo = prompt('Ingresa el título del evento:');
+  if(titulo) {
+    // Se asume el evento a mediodía en la fecha seleccionada
+    const eventDate = new Date(dateStr + "T12:00:00");
+    const payload = {
+      titulo: titulo,
+      fecha: eventDate.toISOString().slice(0,19),
+      duracion: 60,
+      descripcion: ""
+    };
+    fetch('/api/calendar/event/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if(data.status === "success") {
+        alert('Evento creado en Google Calendar');
+        loadGoogleEvents();
+      } else {
+        alert('Error creando evento: ' + data.message);
+      }
+    })
+    .catch(() => alert('Error en la petición'));
+  }
+});
+
+// Acción para borrar un evento (se borra el primero que coincida en la fecha)
+document.getElementById('cm-delete').addEventListener('click', () => {
+  const contextMenu = document.getElementById('context-menu');
+  const dateStr = contextMenu.getAttribute('data-date');
+  if(loadedEvents && loadedEvents.length > 0) {
+    const ev = loadedEvents.find(ev => new Date(ev.start).toISOString().slice(0,10) === dateStr);
+    if(ev && ev.id) {
+      if(confirm("¿Seguro que deseas borrar el evento: " + ev.summary + "?")) {
+        fetch('/api/calendar/event/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event_id: ev.id })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if(data.status === "success") {
+            alert('Evento borrado en Google Calendar');
+            loadGoogleEvents();
+          } else {
+            alert('Error borrando evento: ' + data.message);
+          }
+        })
+        .catch(() => alert('Error en la petición'));
+      }
+    } else {
+      alert('No se encontró un evento para borrar en este día');
+    }
+  } else {
+    alert('No hay eventos cargados para este día');
+  }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('prev-month').addEventListener('click', () => {
