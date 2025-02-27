@@ -39,6 +39,8 @@ if not firebase_admin._apps:
         })
         database = rtdb.reference("/")
         test_value = database.get()
+        print("🔥 Realtime Database inicializado correctamente.")
+        print("Valor obtenido en la raíz de la BD:", test_value)
         
         # Verificar que el bucket de storage esté configurado correctamente
         bucket = storage.bucket()

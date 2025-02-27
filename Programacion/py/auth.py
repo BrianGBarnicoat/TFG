@@ -210,57 +210,20 @@ def oauth2callback():
     # Redirigir a la página de alimentación (en lugar de a la principal)
     return redirect(url_for('alimentacion'))
 
-def login():
-    """
-    Maneja el inicio de sesión con email/password y carga preferencias de tema desde Firebase
-    """
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        
-        # Autenticar al usuario con Firebase
-        # Reemplaza esto con la lógica de autenticación real
-        user_authenticated = True  # Simulación de autenticación exitosa
-        user_data = {'email': email, 'name': 'User Name'}  # Reemplazar con datos reales
-        
-        if user_authenticated:
-            # Obtener el email_key para Firebase
-            email = user_data['email']
-            email_key = email.replace('.', '_').replace('@', '_')
-            
-            # Guardar datos básicos en la sesión
-            session['user'] = {
-                'email': email,
-                'nombre': user_data.get('name', ''),
-                'email_key': email_key,
-                # Otros datos que necesites
-            }
-            
-            # Cargar preferencias de tema desde Firebase
-            try:
-                ref = database.child(f"usuarios/{email_key}/preferencias")
-                prefs = ref.get()
-                
-                if prefs:
-                    # Guardar preferencias en la sesión
-                    session['user_preferences'] = {
-                        'tema': prefs.get('tema', 'default'),
-                        'colores': prefs.get('colores', {})
-                    }
-                    
-                    session.modified = True
-            except Exception as e:
-                print(f"Error al cargar las preferencias: {e}")
-            
-            return redirect(url_for('dashboard'))
-    
-    # Si es GET o la autenticación falla, mostrar formulario de login
-    return render_template('login.html')
+# Eliminado (o comentado) código no referenciado:
+# def login():
+#     """
+#     Maneja el inicio de sesión con email/password y carga preferencias de tema desde Firebase
+#     """
+#     # ...existing code...
+#     return render_template('login.html')
+#
+# def dashboard():
+#     """
+#     Muestra el panel de control después de iniciar sesión
+#     """
+#     if 'user' in session:
+#         return render_template('dashboard.html')
+#     return redirect(url_for('login'))
 
-def dashboard():
-    """
-    Muestra el panel de control después de iniciar sesión
-    """
-    if 'user' in session:
-        return render_template('dashboard.html')
-    return redirect(url_for('login'))
+# Nota: El código comentado (por ejemplo, las funciones login y dashboard) está inactivo y no se usa.

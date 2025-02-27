@@ -33,7 +33,7 @@
     }
     
     .titulo-seccion h1 {
-      color: var(--primary-color);
+      /* ...existing styles... */
     }
     
     .main-content {
@@ -243,12 +243,23 @@
     Ajusta tus comidas según tus objetivos y deja que nuestra IA te sugiera planes semanales equilibrados. Explora más recetas y tips para convertir tu alimentación en un pilar de tu salud.
   </p>
 
-  <div id="google-calendar-container">
-    <h2>Mis Eventos de Google Calendar</h2>
-    <ul id="events-list">
-      <li>Cargando eventos...</li>
-    </ul>
+  <!-- Nueva sección de calendario -->
+  <div id="calendar-container">
+    <div id="calendar-controls">
+      <button id="prev-month">&laquo; Anterior</button>
+      <button id="next-month">Siguiente &raquo;</button>
+      <button id="load-events-google">Mostrar eventos Google</button>
+    </div>
+    <div id="calendar">
+      <!-- Se renderizará el calendario aquí -->
+    </div>
   </div>
+</div>
+
+<!-- Menú contextual oculto -->
+<div id="context-menu" style="position: absolute; display: none; background: #001a33; color: #fff; border: 1px solid #005bb5; z-index:1000; border-radius: 4px;">
+  <div id="cm-create" style="padding: 8px; cursor: pointer;">Crear Evento</div>
+  <div id="cm-delete" style="padding: 8px; cursor: pointer;">Borrar Evento</div>
 </div>
 
 <script>
