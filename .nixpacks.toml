@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+
+[phases.setup]
+nixPkgs = ["python310", "pip"]
+
+[phases.build]
+cmds = ["pip install -r Programacion/py/requirements.txt"]
+
+[start]
+cmd = "python Programacion/py/app.py"
