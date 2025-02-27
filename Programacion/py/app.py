@@ -714,7 +714,7 @@ def resetear_colores_usuario():
         print(f"Error al restablecer colores: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# --------------------------------------------------------------------
+# ----------------s----------------------------------------------------
 # Funciones para iniciar el servidor
 # --------------------------------------------------------------------
 server_thread = None
