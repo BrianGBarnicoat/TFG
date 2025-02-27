@@ -1,45 +1,42 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="default">
 <head>
   <meta charset="UTF-8">
-  <title>Zona Alimentación</title>
+  <title>Alimentación - VytalGym</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- IMPORTANTE: Incluir el sistema de temas global -->
+  {% include 'partials/tema_global.html' %}
+  
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 
   <style>
-    /* ================= Estilos específicos de Alimentación ================= */
+    /* Estilos específicos con variables CSS */
     body {
-      margin: 0;
       font-family: 'Roboto', sans-serif;
-      background: linear-gradient(180deg, #001a33 0%, #002838 40%, #002f2f 100%);
-      color: #fff;
+      background: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-middle) 40%, var(--gradient-end) 100%);
+      color: var(--text-color);
       scroll-behavior: smooth;
     }
     
     .titulo-seccion {
-      background-color: #001a33;
-      color: white;
+      background-color: var(--header-bg);
+      color: var(--text-color);
       padding: 1.5rem 2rem;
-      margin-top: 60px;
+      margin-top: 80px;
       border-bottom: 1px solid rgba(255,255,255,0.1);
       margin-bottom: 40px;
     }
     
     .titulo-seccion h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    
-    .titulo-seccion p {
-      margin: 0.5rem 0 0 0;
-      color: #bbbbbb;
-      font-size: 1rem;
+      color: var(--primary-color);
     }
     
     .main-content {
-      padding: 0 40px 40px;
+      padding: 20px 40px;
       max-width: 1200px;
       margin: 0 auto;
     }
@@ -52,8 +49,8 @@
     }
     
     .macro-card {
-      background: white;
-      color: #333;
+      background: var(--card-bg);
+      color: var(--text-color);
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
@@ -61,13 +58,13 @@
     }
     
     .macro-card h3 {
-      color: #58a058;
+      color: var(--primary-color);
       margin-top: 0;
     }
     
     .recipes-section {
-      background: white;
-      color: #333;
+      background: var(--card-bg);
+      color: var(--text-color);
       border-radius: 8px;
       padding: 30px;
       margin-bottom: 30px;
@@ -75,7 +72,7 @@
     }
     
     .recipes-section h2 {
-      color: #58a058;
+      color: var(--primary-color);
       margin-top: 0;
     }
     
@@ -105,7 +102,7 @@
     
     .recipe-card h3 {
       margin: 0 0 10px 0;
-      color: #333;
+      color: var(--text-color);
     }
     
     .recipe-card p {
@@ -114,15 +111,15 @@
     }
     
     #google-calendar-container {
-      background: white;
-      color: #333;
+      background: var(--card-bg);
+      color: var(--text-color);
       border-radius: 8px;
       padding: 30px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     }
     
     #google-calendar-container h2 {
-      color: #58a058;
+      color: var(--primary-color);
       margin-top: 0;
     }
     
@@ -140,17 +137,31 @@
     }
     
     #events-list li strong {
-      color: #333;
+      color: var(--text-color);
     }
     
     #events-list li button {
-      background: #007bff;
-      color: white;
+      background: var(--secondary-color);
+      color: var(--text-color);
       border: none;
       padding: 10px 15px;
       border-radius: 4px;
       cursor: pointer;
       margin-top: 10px;
+    }
+    
+    button, .btn {
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    button:hover, .btn:hover {
+      background-color: var(--primary-color);
     }
     
     /* Responsive Styles */

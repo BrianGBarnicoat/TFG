@@ -1,44 +1,147 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+/**
+ * Configuración de Firebase para VytalGym
+ * Permite la integración directa con Firebase Realtime Database
+ */
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Configuración de Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyDVkc_ZlGhr_OAow9NIXPZB6uItQu6Hvdo",
+  apiKey: "AIzaSyC_qzTHT0MG7vWa5LsWEj4Lw_MOlRK-XA0",
   authDomain: "tfgbp-d9051.firebaseapp.com",
   databaseURL: "https://tfgbp-d9051-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "tfgbp-d9051",
   storageBucket: "tfgbp-d9051.appspot.com",
-  messagingSenderId: "600087678707",
-  appId: "1:600087678707:web:6b9c2cc815b5d8f8d13186",
-  measurementId: "G-WZW5GBHVFB"
+  messagingSenderId: "490431681478",
+  appId: "1:490431681478:web:bcbdae975d4004e6399c29"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-  
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+// Inicializar Firebase si está disponible
+let firebaseInitialized = false;
+
+function inicializarFirebase() {
+  if (typeof firebase !== 'undefined') {
+    // Evitar inicializar Firebase varias veces
+    if (!firebase.apps || !firebase.apps.length) {
+      try {
+        firebase.initializeApp(firebaseConfig);
+        firebaseInitialized = true;
+        console.log("✅ Firebase inicializado correctamente");
+      } catch (e) {
+        console.error("❌ Error al inicializar Firebase:", e);
+        return false;
+      }
+    } else {
+      firebaseInitialized = true;
+      console.log("✅ Firebase ya estaba inicializado");
+    }
+    return true;
+  } else {
+    console.error("❌ Firebase SDK no está cargado");
+    return false;
+  }
+}
+
+// Intentar inicializar Firebase inmediatamente
+inicializarFirebase();
+
+// Función para guardar tema directamente en Firebase
+function guardarTemaEnFirebase(emailKey, tema) {
+  if (!firebaseInitialized) {
+    if (!inicializarFirebase()) {
+      console.error("No se puede guardar el tema: Firebase no está disponible");
+      return false;
+    }
   }
   
-  // Puedes agregar aquí código adicional que dependa de Firebase
-
-// Si la ventana ya terminó de cargar, se ejecuta de inmediato; si no, se espera al evento "load"
-if (document.readyState === "complete") {
-  initFirebaseConfig();
-} else {
-  window.addEventListener("load", initFirebaseConfig);
+  try {
+    console.log(`Guardando tema ${tema} para usuario ${emailKey} en Firebase...`);
+    const userRef = firebase.database().ref(`usuarios/${emailKey}/preferencias`);
+    userRef.child('tema').set(tema);
+    userRef.child('ultima_actualizacion').set(new Date().toISOString());
+    console.log("✅ Tema guardado correctamente en Firebase");
+    return true;
+  } catch (error) {
+    console.error("❌ Error al guardar tema en Firebase:", error);
+    return false;
+  }
 }
 
-// Función para iniciar sesión usando Firebase Authentication
-function firebaseSignIn(email, password) {
-  return firebase.auth().signInWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      return user;
+// Función para guardar color directamente en Firebase
+function guardarColorEnFirebase(emailKey, cssVar, valor) {
+  if (!firebaseInitialized) {
+    if (!inicializarFirebase()) {
+      console.error("No se puede guardar el color: Firebase no está disponible");
+      return false;
+    }
+  }
+  
+  try {
+    // Convertir nombre CSS a formato Firebase (--primary-color -> primary_color)
+    const colorKey = cssVar.replace('--', '').replace('-', '_');
+    const userRef = firebase.database().ref(`usuarios/${emailKey}/preferencias/colores`);
+    
+    if (valor === null) {
+      console.log(`Eliminando color ${colorKey} para usuario ${emailKey}...`);
+      userRef.child(colorKey).remove();
+    } else {
+      console.log(`Guardando color ${colorKey}=${valor} para usuario ${emailKey}...`);
+      userRef.child(colorKey).set(valor);
+    }
+    
+    // Actualizar timestamp
+    firebase.database().ref(`usuarios/${emailKey}/preferencias`).child('ultima_actualizacion').set(new Date().toISOString());
+    console.log("✅ Color guardado correctamente en Firebase");
+    return true;
+  } catch (error) {
+    console.error("❌ Error al guardar color en Firebase:", error);
+    return false;
+  }
+}
+
+// Función para probar la conexión a Firebase
+function probarConexionFirebase() {
+  return new Promise((resolve, reject) => {
+    if (!firebaseInitialized) {
+      if (!inicializarFirebase()) {
+        reject(new Error("Firebase no está disponible"));
+        return;
+      }
+    }
+    
+    const testRef = firebase.database().ref('.info/connected');
+    const timeout = setTimeout(() => {
+      reject(new Error("Tiempo de espera agotado"));
+    }, 5000);
+    
+    testRef.on('value', snapshot => {
+      clearTimeout(timeout);
+      
+      if (snapshot.val() === true) {
+        resolve({
+          status: 'connected',
+          message: 'Conectado a Firebase correctamente'
+        });
+      } else {
+        reject(new Error("No se pudo conectar a Firebase"));
+      }
+    }, error => {
+      clearTimeout(timeout);
+      reject(error);
     });
+  });
 }
+
+// Exponer las funciones globalmente
+window.Firebase = {
+  init: inicializarFirebase,
+  guardarTema: guardarTemaEnFirebase,
+  guardarColor: guardarColorEnFirebase,
+  probarConexion: probarConexionFirebase
+};
+
+// Si la página ya terminó de cargar, intentar inicializar Firebase
+document.addEventListener('DOMContentLoaded', function() {
+  // Re-intentar inicializar Firebase si no se hizo antes
+  if (!firebaseInitialized) {
+    inicializarFirebase();
+  }
+});

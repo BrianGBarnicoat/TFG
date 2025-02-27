@@ -1,0 +1,111 @@
+/* Variables de tema para VytalGym */
+
+/* TEMA POR DEFECTO - Se aplica a todo el sitio */
+:root {
+  /* Colores principales */
+  --primary-color: #58a058;
+  --secondary-color: #004d40;
+  --accent-color: #3e7b3e;
+  
+  /* Colores de fondo y texto */
+  --background-color: #001a33;
+  --text-color: #ffffff;
+  --header-bg: rgba(0, 10, 20, 0.95);
+  --card-bg: rgba(28, 40, 28, 0.9);
+  
+  /* Gradientes y otros colores */
+  --gradient-start: #001a33;
+  --gradient-middle: #002838;
+  --gradient-end: #002f2f;
+  --footer-bg: rgba(0, 10, 20, 0.95);
+  --footer-text: #58a058;
+  --button-hover: #58a058;
+  
+  /* Colores de estados */
+  --error-color: #ff5252;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --info-color: #2196f3;
+}
+
+/* TEMA OSCURO */
+[data-theme="dark"] {
+  --primary-color: #388e3c;
+  --secondary-color: #00352c;
+  --accent-color: #2e5e2e;
+  --background-color: #121212;
+  --gradient-start: #121212;
+  --gradient-middle: #1e1e1e;
+  --gradient-end: #262626;
+  --text-color: #e0e0e0;
+  --header-bg: rgba(10, 10, 10, 0.98);
+  --card-bg: rgba(30, 30, 30, 0.95);
+  --footer-bg: rgba(10, 10, 10, 0.98);
+  --footer-text: #388e3c;
+  --button-hover: #388e3c;
+}
+
+/* TEMA CLARO */
+[data-theme="light"] {
+  --primary-color: #4CAF50;
+  --secondary-color: #2E7D32;
+  --accent-color: #81C784;
+  --background-color: #f5f5f5;
+  --gradient-start: #f5f5f5;
+  --gradient-middle: #eeeeee;
+  --gradient-end: #e0e0e0;
+  --text-color: #333333;
+  --header-bg: rgba(255, 255, 255, 0.98);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --footer-bg: rgba(255, 255, 255, 0.98);
+  --footer-text: #2E7D32;
+  --button-hover: #4CAF50;
+}
+
+/* TEMA AZUL */
+[data-theme="blue"] {
+  --primary-color: #2196F3;
+  --secondary-color: #0D47A1;
+  --accent-color: #64B5F6;
+  --background-color: #0a1929;
+  --gradient-start: #0a1929;
+  --gradient-middle: #102a43;
+  --gradient-end: #1a3b57;
+  --text-color: #ffffff;
+  --header-bg: rgba(13, 71, 161, 0.95);
+  --card-bg: rgba(30, 50, 90, 0.9);
+  --footer-bg: rgba(13, 71, 161, 0.95);
+  --footer-text: #64B5F6;
+  --button-hover: #2196F3;
+}
+
+/* TEMA PÚRPURA */
+[data-theme="purple"] {
+  --primary-color: #9C27B0;
+  --secondary-color: #6A1B9A;
+  --accent-color: #BA68C8;
+  --background-color: #2a0934;
+  --gradient-start: #2a0934;
+  --gradient-middle: #3b0d4a;
+  --gradient-end: #4a1057;
+  --text-color: #ffffff;
+  --header-bg: rgba(40, 20, 50, 0.95);
+  --card-bg: rgba(70, 40, 80, 0.9);
+  --footer-bg: rgba(40, 20, 50, 0.95);
+  --footer-text: #BA68C8;
+  --button-hover: #9C27B0;
+}
+
+/* IMPORTANTE: Asegurar que los estilos inline tienen prioridad */
+html[style*="--primary-color"],
+html[style*="--secondary-color"],
+html[style*="--header-bg"],
+html[style*="--text-color"],
+html[style*="--background-color"] {
+  /* Esta regla aumenta la especificidad para los estilos inline */
+}
+
+/* Asegurar transiciones suaves para cambios de color */
+body, button, a, header, section, .card, .btn {
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}

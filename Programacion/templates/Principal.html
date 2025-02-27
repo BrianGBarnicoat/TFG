@@ -4,170 +4,405 @@
   <meta charset="UTF-8">
   <title>Página Principal - VytalGym</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
+  <!-- Fuente de Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
-  
   <style>
-    /* Estilos específicos para la página principal */
-    .hero-slider {
-      height: 85vh;
-      position: relative;
-      overflow: hidden;
-      margin-top: 90px; /* Aumentado de 70px a 90px para mayor separación */
-      z-index: 1; /* Aseguramos un z-index menor que el header */
+    /* ---------------- GLOBAL STYLES ---------------- */
+    * {
+      margin: 0; 
+      padding: 0;
+      box-sizing: border-box;
     }
-    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(180deg, #001a33 0%, #002838 40%, #002f2f 100%);
+      color: #fff;
+      scroll-behavior: smooth;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    /* ---------------- HEADER ---------------- */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(0, 10, 20, 0.95);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease;
+    }
+    header.hidden {
+      transform: translateY(-100%);
+    }
+    header .header-left h1 {
+      font-size: 1.8rem;
+      color: #58a058;
+    }
+    header nav a {
+      margin: 0 1rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+    header nav a:hover {
+      color: #58a058;
+    }
+    .header-right a.btn-login {
+      background-color: #004d40;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      transition: background-color 0.3s, transform 0.3s;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+    .header-right a.btn-login:hover {
+      background-color: #58a058;
+      transform: scale(1.05);
+    }
+
+    /* ---------------- HERO-SLIDER SECTION ---------------- */
+    .hero-slider {
+      position: relative;
+      min-height: 550px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
     .slider-image {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-size: cover;
       background-position: center;
       opacity: 0;
-      transition: opacity 1s ease-in-out;
+      transition: opacity 1.5s ease;
     }
-    
     .slider-image.active {
       opacity: 1;
     }
-    
-    .hero-content {
+    .hero-slider::before {
+      content: "";
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      color: white;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-      z-index: 2;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.7));
+      z-index: 1;
     }
-    
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: #fff;
+      max-width: 600px;
+      padding: 2rem;
+    }
     .hero-content h1 {
-      font-size: 3.5rem;
+      font-size: 3rem;
       margin-bottom: 1rem;
     }
-    
     .hero-content p {
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       margin-bottom: 2rem;
     }
-    
     .hero-content button {
-      padding: 0.8rem 2rem;
-      font-size: 1.2rem;
-      background-color: #58a058;
-      color: white;
+      padding: 0.8rem 1.5rem;
+      background-color: #004d40;
       border: none;
-      border-radius: 30px;
+      color: #fff;
+      font-size: 1rem;
+      border-radius: 25px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: background-color 0.3s, transform 0.3s;
     }
-    
     .hero-content button:hover {
-      background-color: #3e7b3e;
+      background-color: #58a058;
       transform: scale(1.05);
     }
-    
-    .slider-arrows span {
+    .slider-arrows {
       position: absolute;
       top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
       transform: translateY(-50%);
-      font-size: 2.5rem;
-      color: rgba(255, 255, 255, 0.8);
+      padding: 0 1rem;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .slider-arrows .prev, .slider-arrows .next {
+      font-size: 2rem;
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 50%;
+      pointer-events: auto;
       cursor: pointer;
-      z-index: 10;
-      padding: 15px;
-    }
-    
-    .slider-arrows .prev {
-      left: 20px;
-    }
-    
-    .slider-arrows .next {
-      right: 20px;
-    }
-    
-    /* About Section */
-    .about {
+      user-select: none;
       display: flex;
       align-items: center;
-      padding: 4rem 2rem;
+      justify-content: center;
+      transition: background-color 0.3s;
+      color: #fff;
+    }
+    .slider-arrows .prev:hover, .slider-arrows .next:hover {
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    /* ---------------- ABOUT SECTION ---------------- */
+    .about {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
       gap: 2rem;
-    }
-    
-    .about img {
-      width: 45%;
-      border-radius: 10px;
-      transition: transform 0.5s ease;
-    }
-    
-    .about img.expand-on-load {
-      animation: expandImage 1.5s ease-out;
-    }
-    
-    .about .text {
-      flex: 1;
-    }
-    
-    /* Parallax Food Section */
-    .parallax-food {
-      position: relative;
-      height: 400px;
-      background-image: url('https://images.unsplash.com/photo-1505576399279-565b52d4ac71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80');
-      background-attachment: fixed;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: cover;
-    }
-    
-    .food-content {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.05);
       text-align: center;
-      color: white;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
-      width: 80%;
     }
-    
-    /* Fade-in animations */
+    .about img {
+      max-width: 300px;
+      width: 100%;
+      border-radius: 10px;
+      transform: scale(0);
+      opacity: 0;
+    }
+    .about .text {
+      max-width: 600px;
+      text-align: left;
+    }
+    .about .text h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #58a058;
+      text-transform: uppercase;
+    }
+    .about .text p {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: #ccc;
+      margin-bottom: 1rem;
+    }
+    .about .text button {
+      margin-top: 0.5rem;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      background-color: #004d40;
+      color: #fff;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+    .about .text button:hover {
+      background-color: #58a058;
+      transform: scale(1.05);
+    }
+
+    /* ---------------- SECTIONS BASE ---------------- */
+    section {
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    section h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      color: #58a058;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+    /* ---------------- CARDS ---------------- */
+    .card {
+      background-color: #1e2b1e;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      overflow: hidden;
+      transition: transform 0.3s;
+      width: 300px;
+      margin: 0 auto;
+    }
+    .card:hover {
+      transform: scale(1.02);
+    }
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .card h3 {
+      color: #58a058;
+      padding: 1rem 1rem 0.5rem;
+      margin: 0;
+      font-size: 1.4rem;
+    }
+    .card p {
+      padding: 0 1rem 1rem;
+      margin: 0;
+      color: #fff;
+      font-size: 1rem;
+    }
+    .card button {
+      margin: 1rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      background-color: #004d40;
+      color: #fff;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .card button:hover {
+      background-color: #58a058;
+    }
+
+    /* ---------------- CTA SECTION ---------------- */
+    .cta-section {
+      background-color: #002f2f;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .cta-section h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .cta-section p {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    .cta-section button {
+      padding: 0.8rem 1.5rem;
+      background-color: #004d40;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+    .cta-section button:hover {
+      background-color: #58a058;
+      transform: scale(1.05);
+    }
+
+    /* ---------------- PARALLAX FOOD SECTION ---------------- */
+    .parallax-food {
+      background: url('https://images.unsplash.com/photo-1568158870658-a4a1f1f7d0f6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1600') center/cover no-repeat fixed;
+      padding: 4rem 2rem;
+      text-align: center;
+      color: #fff;
+      position: relative;
+    }
+    .food-content {
+      background-color: rgba(0,0,0,0.5);
+      display: inline-block;
+      padding: 2rem;
+      border-radius: 10px;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+    .parallax-food h2 {
+      color: #58a058;
+      margin-bottom: 1rem;
+    }
+
+    /* ---------------- EXTRA CONTENT ---------------- */
+    .extra-content {
+      padding: 2rem;
+      min-height: 600px;
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    /* ---------------- FOOTER ---------------- */
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: rgba(0, 10, 20, 0.95);
+      color: #58a058;
+    }
+
+    /* ---------------- ANIMATIONS ---------------- */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes floatImage {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+    .expand-on-load {
+      animation: expandImage 2.5s ease-out forwards;
+    }
+    @keyframes expandImage {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+      80% {
+        transform: scale(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    /* Agregar estilos para efecto fade-in */
     .fade-section {
       opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 1s ease-out, transform 1s ease-out;
+      transition: opacity 1.5s ease-out;
     }
-    
     .fade-section.show {
       opacity: 1;
-      transform: translateY(0);
     }
-    
-    @keyframes expandImage {
-      0% { transform: scale(0.8); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-      .about {
-        flex-direction: column;
-      }
-      
-      .about img {
-        width: 100%;
-      }
-      
-      .hero-content h1 {
-        font-size: 2.5rem;
-      }
+
+    /* Ajustar tamaño de iconos en sección de contacto */
+    section#contacto .card img {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      margin: 0 auto;
     }
   </style>
 </head>
 <body>
-  {% include 'partials/header.html' %}
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
+    </div>
+    <nav class="header-center">
+      <a href="{{ url_for('salud') }}">Salud</a>
+      <a href="{{ url_for('fitness') }}">Fitness</a>
+      <a href="{{ url_for('alimentacion') }}">Alimentación</a>
+      <a href="{{ url_for('precios') }}">Servicios</a>
+      <a href="{{ url_for('contacto') }}">Contacto</a>
+    </nav>
+    <div class="header-right">
+      {% if session.user %}
+        {% if session.user.foto %}
+          <img src="{{ session.user.foto }}"
+               alt="Foto de {{ session.user.nombre }}"
+               class="profile-img"
+               style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; cursor: pointer;"
+               onclick="location.href='{{ url_for('configurar_foto') }}';">
+        {% else %}
+          <span>{{ session.user.nombre }}</span>
+          <button onclick="location.href='{{ url_for('configurar_foto') }}';">Subir foto de perfil</button>
+        {% endif %}
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
+      {% endif %}
+    </div>
+  </header>
+  
   <!-- HERO SLIDER -->
   <section class="hero-slider fade-section" id="hero">
     <div class="slider-image active" 

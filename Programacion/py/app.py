@@ -38,8 +38,12 @@ if not firebase_admin._apps:
         })
         database = rtdb.reference("/")
         test_value = database.get()
-        print("🔥 Realtime Database inicializado correctamente.")
-        print("Valor obtenido en la raíz de la BD:", test_value)
+        
+        # Verificar que el bucket de storage esté configurado correctamente
+        bucket = storage.bucket()
+        print(f"🔥 Firebase inicializado correctamente. Bucket Storage: {bucket.name}")
+        print(f"🔗 URL gs de Firebase Storage: gs://{bucket.name}")
+        
     except Exception as e:
         print("⚠️ Error al inicializar Firebase:", e)
         database = None
@@ -74,6 +78,85 @@ print("Static Directory:", STATIC_DIR)
 print("Searchpath:", app.jinja_loader.searchpath)
 
 # --------------------------------------------------------------------
+# Funciones de preferencias para guardar en Firebase
+# --------------------------------------------------------------------
+
+def guardar_preferencia_firebase(email_key, tipo, clave, valor):
+    """
+    Guarda una preferencia en Firebase Realtime Database
+    
+    Args:
+        email_key: Email del usuario con puntos reemplazados por guiones bajos
+        tipo: 'tema', 'color', etc.
+        clave: Identificador de la preferencia
+        valor: Valor a guardar (None para eliminar)
+    """
+    try:
+        # Referencia a la ubicación de las preferencias del usuario
+        ref = rtdb.reference(f"/usuarios/{email_key}/preferencias")
+        
+        # Para colores, guardar en la subcategoría 'colores'
+        if tipo == 'color':
+            # Convertir nombre CSS a formato Firebase (--primary-color -> primary_color)
+            firebase_key = clave.replace('--', '').replace('-', '_')
+            color_ref = ref.child('colores')
+            
+            if valor is None:
+                # Eliminar el color si el valor es None
+                color_ref.child(firebase_key).delete()
+            else:
+                # Guardar o actualizar el color
+                color_ref.child(firebase_key).set(valor)
+                
+        # Para temas, guardar directamente
+        elif tipo == 'tema':
+            ref.child('tema').set(valor)
+            
+        return True
+        
+    except Exception as e:
+        print(f"Error al guardar preferencia: {str(e)}")
+        return False
+
+def cargar_preferencias_firebase(email_key):
+    """
+    Carga las preferencias de un usuario desde Firebase
+    
+    Args:
+        email_key: Email del usuario con puntos reemplazados por guiones bajos
+        
+    Returns:
+        Diccionario con las preferencias (tema y colores)
+    """
+    # Estructura por defecto
+    preferencias = {'tema': 'default', 'colores': {}}
+    
+    try:
+        # Obtener referencia a las preferencias del usuario
+        ref = rtdb.reference(f"/usuarios/{email_key}/preferencias")
+        pref_data = ref.get()
+        
+        if not pref_data:
+            return preferencias
+            
+        # Cargar tema si existe
+        if 'tema' in pref_data:
+            preferencias['tema'] = pref_data['tema']
+            
+        # Cargar colores si existen
+        if 'colores' in pref_data:
+            for key, valor in pref_data['colores'].items():
+                # Convertir formato Firebase a CSS (primary_color -> --primary-color)
+                css_key = f"--{key.replace('_', '-')}"
+                preferencias['colores'][css_key] = valor
+                
+        return preferencias
+        
+    except Exception as e:
+        print(f"Error al cargar preferencias: {str(e)}")
+        return preferencias
+
+# --------------------------------------------------------------------
 # Rutas de la Aplicación
 # --------------------------------------------------------------------
 
@@ -81,10 +164,10 @@ print("Searchpath:", app.jinja_loader.searchpath)
 @app.route('/')
 def principal():
     # Obtén los productos y noticias desde Firebase. Ajusta las rutas según tu BD.
-    productos_snapshot = database.child("productos").get()
-    noticias_snapshot = database.child("noticias").get()
+    productos_snapshot = database.child("productos").get() if database else None
+    noticias_snapshot = database.child("noticias").get() if database else None
 
-    # Convierte a lista si es necesario (puedes ajustar según cómo retorne Firebase)
+    # Convierte a lista si es necesario
     productos = list(productos_snapshot.values()) if productos_snapshot else None
     noticias = list(noticias_snapshot.values()) if noticias_snapshot else None
 
@@ -107,7 +190,8 @@ def serve_login_images(filename):
 # Cerrar sesión
 @app.route('/logout')
 def logout():
-    session.pop("user", None)
+    # Limpiar todos los datos de sesión
+    session.clear()
     return redirect(url_for('principal'))
 
 # Registro de usuario (POST)
@@ -137,6 +221,7 @@ def registrar_usuario():
 # Inicio de sesión (POST)
 @app.route('/iniciar_sesion', methods=['POST'])
 def iniciar_sesion():
+    """Inicia sesión y carga las preferencias del usuario desde Firebase"""
     try:
         if database is None:
             return "Error de conexión con la base de datos", 500
@@ -156,12 +241,40 @@ def iniciar_sesion():
             return "Usuario no encontrado", 404
             
         if bcrypt.check_password_hash(usuario_data["password"], password):
+            # Crear objeto de usuario para la sesión
             session["user"] = {
                 "nombre": usuario_data["nombre"],
                 "email": usuario_data["email"],
                 "foto": usuario_data.get("foto", ""),
-                "login_method": "local"
+                "login_method": "local",
+                "id": email_key  # Usar email_key como ID
             }
+            
+            # Cargar preferencias desde Firebase con mensaje de diagnóstico
+            try:
+                print(f"Cargando preferencias de {email_key} desde Firebase...")
+                preferencias = cargar_preferencias_firebase(email_key)
+                
+                # Si las preferencias están vacías, intentar crear una entrada básica
+                if preferencias['tema'] == 'default' and not preferencias['colores']:
+                    print(f"No se encontraron preferencias para {email_key}, creando entrada básica...")
+                    # Crear una entrada mínima para verificar permisos de escritura
+                    rtdb.reference(f"/usuarios/{email_key}/preferencias").set({
+                        'tema': 'default',
+                        'ultima_sincronizacion': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    })
+                    print("Preferencias iniciales creadas correctamente")
+                
+                session['user_preferences'] = preferencias
+                print(f"Preferencias cargadas: {preferencias}")
+            except Exception as e:
+                print(f"⚠️ Error al cargar preferencias: {str(e)}")
+                # Asignar un valor por defecto si hay error
+                session['user_preferences'] = {'tema': 'default', 'colores': {}}
+                print("Se han asignado preferencias por defecto debido al error")
+            
+            # Asegurar de que los cambios se guarden en la sesión
+            session.modified = True
             return redirect(url_for('principal'))
         else:
             return "Contraseña incorrecta", 401
@@ -170,7 +283,7 @@ def iniciar_sesion():
         print(f"Error en inicio de sesión: {str(e)}")
         return f"Error en el servidor: {str(e)}", 500
 
-# Otras páginas (puedes agregar más según sea necesario)
+# Otras páginas
 @app.route('/pagina')
 def pagina():
     return render_template('Pagina.html')
@@ -212,7 +325,6 @@ def autorizar():
     """
     return google_autorizar()
 
-# Modificar el callback de OAuth para asegurar que se establece correctamente el método de login
 @app.route('/oauth2callback')
 def callback():
     # Obtener el resultado del callback de OAuth
@@ -222,13 +334,20 @@ def callback():
     if 'user' in session:
         # Establecer explícitamente el método de login como Google
         session['user']['login_method'] = 'google'
-        # Asegurarse de que la sesión se guarde correctamente
+        
+        # Cargar preferencias si tenemos el email
+        if 'email' in session['user']:
+            email_key = session['user']['email'].replace('.', '_')
+            preferencias = cargar_preferencias_firebase(email_key)
+            session['user_preferences'] = preferencias
+        
+        # Guardar cambios en la sesión
         session.modified = True
-        print("Usuario autenticado con Google:", session['user'])
+        print("Usuario autenticado con Google, preferencias cargadas")
     
     return redirect(url_for('principal'))
 
-# Asegurarse de que configurar_foto permita acceso a usuarios de Google
+# Configurar foto
 @app.route('/configurar_foto')
 def configurar_foto():
     if 'user' not in session:
@@ -241,54 +360,63 @@ def configurar_foto():
     # Permitir acceso a todos los usuarios independientemente del método de login
     return render_template('configurar_foto.html')
 
-# Modificar el manejo de la subida de fotos para usuarios de Google
+# Subir foto
 @app.route('/subir_foto', methods=['POST'])
 def subir_foto():
     if "user" not in session:
         return redirect(url_for('login'))
     
-    # Si es un usuario de Google, simplemente redirigir a configurar_foto en lugar de intentar subir
+    # Si es un usuario de Google, redirigir
     if session["user"].get("login_method") == "google":
         return redirect(url_for('configurar_foto'))
     
-    # Resto del código para subir fotos para usuarios locales
+    # Obtener archivo
     file = request.files.get('foto')
     if not file or file.filename.strip() == "":
         print(">>> Archivo no recibido o vacío.")
         return redirect(url_for('principal'))
+    
     print(f">>> Archivo recibido: {file.filename}")
     filename = secure_filename(file.filename)
     email_key = session["user"]["email"].replace('.', '_')
-    # Cambiar a bucket terminado en .appspot.com
-    bucket_name = "tfgbp-d9051.appspot.com"  
-    bucket = firebase_admin.storage.bucket(bucket_name)
-    folder_path = f"fotos/{email_key}/"
-    # Crear placeholder para la carpeta virtual
-    dummy_blob = bucket.blob(folder_path + ".folder_placeholder")
-    if not dummy_blob.exists():
-        dummy_blob.upload_from_string("")
-        print(f"Carpeta {folder_path} creada con placeholder.")
-    blob = bucket.blob(f"{folder_path}{filename}")
+    
+    # Usar Firebase Storage
     try:
+        bucket = storage.bucket()
+        print(f">>> Usando bucket: {bucket.name}")
+        
+        folder_path = f"fotos/{email_key}/"
+        # Crear placeholder para la carpeta virtual
+        dummy_blob = bucket.blob(folder_path + ".folder_placeholder")
+        if not dummy_blob.exists():
+            dummy_blob.upload_from_string("")
+            print(f"Carpeta {folder_path} creada.")
+            
+        # Subir el archivo
+        blob = bucket.blob(f"{folder_path}{filename}")
         file.seek(0)
         blob.upload_from_file(file, content_type=file.content_type)
         print("Foto subida correctamente.")
-    except Exception as e:
-        print("Error al subir la foto:", e)
-        return redirect(url_for('principal'))
-    try:
+        
+        # Hacer pública la imagen
         blob.make_public()
-        print("Foto hecha pública.")
+        nueva_url = blob.public_url
+        print("URL pública:", nueva_url)
+        
+        # Actualizar en Firebase y sesión
+        database.child("usuarios").child(email_key).update({"foto": nueva_url})
+        session["user"]["foto"] = nueva_url
+        
+        # Responder según el tipo de petición
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"nueva_url": nueva_url})
+        return redirect(url_for('principal'))
+        
     except Exception as e:
-        print("Error al hacer la foto pública:", e)
-    nueva_url = blob.public_url
-    print("URL de la foto:", nueva_url)
-    rtdb.reference("usuarios").child(email_key).update({"foto": nueva_url})
-    session["user"]["foto"] = nueva_url
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        return jsonify({"nueva_url": nueva_url})
-    return redirect(url_for('principal'))
+        print(f">>> ERROR al subir foto: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
+# Actualizar datos de usuario
 @app.route('/update_user', methods=['POST'])
 def update_user():
     if "user" not in session:
@@ -308,44 +436,39 @@ def update_user():
         session["user"].update(updates)
     return redirect(url_for('configurar_foto'))
 
-# Nuevo endpoint para obtener los eventos de Google Calendar
+# Eventos de calendario
 @app.route('/api/calendar/events')
 def api_calendar_events():
     events = get_calendar_events()
     return jsonify(events)
 
-# Añadir la ruta para cambiar contraseña
+# Cambiar contraseña
 @app.route('/cambiar_password', methods=['GET', 'POST'])
 def cambiar_password():
     if 'user' not in session:
         return redirect(url_for('login'))
     
-    # No permitir cambio de contraseña para usuarios de Google
     if session['user'].get('login_method') == 'google':
         return redirect(url_for('configurar_foto'))
     
     if request.method == 'POST':
-        # Obtener datos del formulario
         actual_password = request.form.get('actual_password')
         nueva_password = request.form.get('nueva_password')
         confirmar_password = request.form.get('confirmar_password')
         
-        # Validaciones básicas
         if not actual_password or not nueva_password or not confirmar_password:
             return render_template('cambiar_password.html', error="Todos los campos son obligatorios")
         
         if nueva_password != confirmar_password:
-            return render_template('cambiar_password.html', error="Las nuevas contraseñas no coinciden")
-            
-        # Verificar contraseña actual
+            return render_template('cambiar_password.html', error="Las contraseñas no coinciden")
+        
         email_key = session["user"]["email"].replace('.', '_')
         usuario_ref = database.child("usuarios").child(email_key)
         usuario_data = usuario_ref.get()
         
         if not bcrypt.check_password_hash(usuario_data["password"], actual_password):
             return render_template('cambiar_password.html', error="Contraseña actual incorrecta")
-            
-        # Actualizar contraseña
+        
         hashed_password = bcrypt.generate_password_hash(nueva_password).decode('utf-8')
         usuario_ref.update({"password": hashed_password})
         
@@ -353,14 +476,179 @@ def cambiar_password():
     
     return render_template('cambiar_password.html')
 
+# Guardar tema de usuario
+@app.route('/guardar_tema_usuario', methods=['POST'])
+def guardar_tema_usuario():
+    """Guarda el tema del usuario en Firebase Realtime Database"""
+    if 'user' not in session:
+        return jsonify({'status': 'error', 'message': 'No autenticado'})
+    
+    data = request.json
+    tema = data.get('tema', 'default')
+    
+    try:
+        email_key = session['user']['email'].replace('.', '_')
+        print(f"Guardando tema {tema} para usuario {email_key} en Firebase...")
+        
+        # Guardar en Firebase
+        database.child("usuarios").child(email_key).child("preferencias").child("tema").set(tema)
+        
+        # Actualizar sesión
+        if 'user_preferences' not in session:
+            session['user_preferences'] = {'tema': tema, 'colores': {}}
+        else:
+            session['user_preferences']['tema'] = tema
+            
+        session.modified = True
+        return jsonify({'status': 'success', 'message': f'Tema {tema} guardado correctamente'})
+    
+    except Exception as e:
+        print(f"Error al guardar tema: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/guardar_color_usuario', methods=['POST'])
+def guardar_color_usuario():
+    """Guarda un color personalizado en Firebase Realtime Database"""
+    if 'user' not in session:
+        return jsonify({'status': 'error', 'message': 'No autenticado'})
+    
+    data = request.json
+    variable = data.get('variable')  # --primary-color
+    valor = data.get('valor')  # #FF0000
+    
+    if not variable:
+        return jsonify({'status': 'error', 'message': 'Variable CSS no especificada'})
+    
+    try:
+        email_key = session['user']['email'].replace('.', '_')
+        
+        # Convertir nombre CSS a formato Firebase (--primary-color -> primary_color)
+        firebase_key = variable.replace('--', '').replace('-', '_')
+        
+        # Guardar en Firebase
+        if valor is None:
+            # Si valor es None, eliminar la preferencia
+            database.child("usuarios").child(email_key).child("preferencias").child("colores").child(firebase_key).remove()
+            print(f"Color {firebase_key} eliminado para usuario {email_key}")
+        else:
+            # Guardar/actualizar el color
+            database.child("usuarios").child(email_key).child("preferencias").child("colores").child(firebase_key).set(valor)
+            print(f"Color {firebase_key}={valor} guardado para usuario {email_key}")
+        
+        # Actualizar sesión
+        if 'user_preferences' not in session:
+            session['user_preferences'] = {'tema': 'default', 'colores': {}}
+        
+        if valor is None:
+            if variable in session['user_preferences']['colores']:
+                del session['user_preferences']['colores'][variable]
+        else:
+            session['user_preferences']['colores'][variable] = valor
+            
+        session.modified = True
+        return jsonify({
+            'status': 'success', 
+            'message': f'Color {variable} guardado correctamente',
+            'variable': variable,
+            'valor': valor
+        })
+        
+    except Exception as e:
+        print(f"Error al guardar color: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/sincronizar_preferencias', methods=['POST'])
+def sincronizar_preferencias():
+    """Sincroniza preferencias del usuario desde Firebase a la sesión"""
+    if 'user' not in session:
+        return jsonify({'status': 'error', 'message': 'No autenticado'})
+        
+    try:
+        email_key = session['user']['email'].replace('.', '_')
+        
+        # Obtener preferencias directamente desde Firebase
+        preferencias_ref = database.child("usuarios").child(email_key).child("preferencias").get()
+        
+        # Crear estructura para almacenar las preferencias
+        preferencias = {'tema': 'default', 'colores': {}}
+        
+        # Si hay preferencias en Firebase, procesarlas
+        if preferencias_ref:
+            # Cargar tema si existe
+            if 'tema' in preferencias_ref:
+                preferencias['tema'] = preferencias_ref['tema']
+                
+            # Cargar colores si existen
+            if 'colores' in preferencias_ref:
+                colores = preferencias_ref['colores']
+                for key, value in colores.items():
+                    # Arreglado: Añadida comilla de cierre que faltaba
+                    css_var = f"--{key.replace('_', '-')}" 
+                    preferencias['colores'][css_var] = value
+                    
+        # Actualizar la sesión con las preferencias sincronizadas
+        session['user_preferences'] = preferencias
+        session.modified = True
+        
+        print(f"Preferencias sincronizadas para {email_key}: {preferencias}")
+        return jsonify({
+            'status': 'success',
+            'message': 'Preferencias sincronizadas correctamente',
+            'data': preferencias
+        })
+        
+    except Exception as e:
+        print(f"Error al sincronizar preferencias: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)})
+
+# Añadir ruta de diagnóstico para probar Firebase
+@app.route('/diagnostico_firebase')
+def diagnostico_firebase():
+    """Ruta para probar la conexión con Firebase"""
+    if 'user' not in session:
+        return jsonify({'status': 'error', 'message': 'No autenticado'})
+    
+    try:
+        email_key = session['user']['email'].replace('.', '_')
+        
+        # Test de conexión
+        test_ref = database.child("_test_connection").child(email_key)
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Intentar escribir un valor
+        test_ref.set({
+            'timestamp': timestamp,
+            'message': 'Test de conexión',
+            'user_agent': request.headers.get('User-Agent', 'Unknown')
+        })
+        
+        # Leer el valor recién escrito
+        test_data = test_ref.get()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Conexión con Firebase OK',
+            'write_test': True,
+            'read_test': bool(test_data),
+            'data': test_data
+        })
+        
+    except Exception as e:
+        print(f"Error en diagnóstico Firebase: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Error: {str(e)}',
+            'recommendation': 'Verifica credenciales y permisos de Firebase'
+        })
+
 # --------------------------------------------------------------------
-# Funciones para iniciar el servidor en segundo plano (opcional)
+# Funciones para iniciar el servidor
 # --------------------------------------------------------------------
 server_thread = None
 
 def iniciar_servidor_en_segundo_plano():
     global server_thread
-    if server_thread and server_thread.is_alive():
+    if (server_thread and server_thread.is_alive()):
         print("⚠️ El servidor Flask ya está corriendo.\n")
         return
     print("\n🚀🔥 ¡El servidor Flask se está iniciando en segundo plano! 🔥🚀")
@@ -387,7 +675,7 @@ def mostrar_banner():
 <!-- * __  __           __             ___    ____                           * -->
 <!-- */\ \/\ \         /\ \__         /\_ \  /\  _`\                         * -->
 <!-- *\ \ \ \ \  __  __\ \ ,_\    __  \//\ \ \ \ \L\_\  __  __    ___ ___    * -->
-<!-- * \ \ \/\ \/\ \\ \ \/  /'__`\  \ \ \ \ \ \L_L /\ \/\ \ /' __` __`\      * -->
+<!-- * \ \ \/\ \/\ \\ \ \/  /'__`\  \ \ \ \ \L_L /\ \/\ \ /' __` __`\      * -->
 <!-- *  \ \ \_/ \ \ \_\ \\ \ \_/\ \L\.\_ \_\ \_\ \ \/, \ \ \_\ \/\ \/\ \/\ \ * -->
 <!-- *   \ `\___/\/`____ \\ \__\ \__/.\_\/\____\\ \____/\/`____ \ \_\ \_\ \_\* -->
 <!-- *    `\/__/  `/___/> \\/__/\/__/\/_/\/____/ \/___/  `/___/> \/_/\/_/\/_/* -->
@@ -441,8 +729,8 @@ def ejecutar_configuracion(opciones_seleccionadas):
     print("¡Operaciones completadas!\n")
 
 def iniciar_asistente():
+    mostrar_banner()
     while True:
-        mostrar_banner()
         opciones = menu_principal()
         if not opciones:
             print("No has seleccionado nada. Finalizando...\n")

@@ -1,0 +1,97 @@
+<!-- SISTEMA DE TEMAS POR USUARIO - INCLUIR EN TODAS LAS PÁGINAS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme-variables.css') }}">
+
+<!-- Incluir Firebase SDK para operaciones en cliente -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<!-- Configuración e inicialización de Firebase -->
+<script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+
+<!-- Cargar preferencias del usuario si están disponibles -->
+{% if session.user %}
+<meta name="user-email" content="{{ session.user.email }}">
+<script>
+  // Marcar el body como usuario autenticado
+  document.body.classList.add('user-logged-in');
+  
+  // Precarga de preferencias (vienen de Firebase via backend)
+  {% if session.user_preferences %}
+    // Cargar tema base
+    sessionStorage.setItem('user-theme', '{{ session.user_preferences.tema }}');
+    console.log("Tema cargado desde Firebase: {{ session.user_preferences.tema }}");
+    
+    // Cargar colores personalizados
+    {% for var, color in session.user_preferences.colores.items() %}
+      sessionStorage.setItem('user-{{ var|replace("--", "") }}', '{{ color }}');
+      console.log("Color cargado de Firebase: {{ var }} = {{ color }}");
+    {% endfor %}
+  {% else %}
+    console.log("No hay preferencias en la sesión para este usuario, usando valores predeterminados");
+  {% endif %}
+</script>
+{% else %}
+<script>
+  // No hay sesión, limpiar todo
+  document.body.classList.remove('user-logged-in');
+  
+  // Eliminar tema personalizado
+  sessionStorage.removeItem('user-theme');
+  
+  // Limpiar todos los colores personalizados
+  const colorKeys = ['primaryColor', 'secondaryColor', 'headerBg', 'textColor', 'backgroundColor'];
+  colorKeys.forEach(key => {
+    sessionStorage.removeItem('user-' + key);
+  });
+  
+  console.log("No hay sesión activa, se han limpiado todos los temas personalizados");
+</script>
+{% endif %}
+
+<!-- Función para mostrar notificaciones -->
+<script>
+  window.showNotification = function(message, type) {
+    // Verificar si la función está disponible en la página actual
+    if (typeof showNotification === 'function') {
+      // Usar la implementación existente si está disponible
+      showNotification(message, type);
+      return;
+    }
+    
+    // Implementación básica como fallback
+    console.log(`[${type}] ${message}`);
+    
+    // Solo crear notificación si no es una página simple
+    if (!document.querySelector('.config-container')) {
+      // Crear elemento de notificación temporal
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed; top: 20px; right: 20px; 
+        padding: 12px 20px; border-radius: 4px; 
+        color: white; z-index: 9999;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      `;
+      
+      // Aplicar color según tipo
+      switch(type) {
+        case 'success': notification.style.background = '#4CAF50'; break;
+        case 'error': notification.style.background = '#F44336'; break;
+        case 'warning': notification.style.background = '#FF9800'; break;
+        default: notification.style.background = '#2196F3'; break;
+      }
+      
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      // Automáticamente remover después de 4 segundos
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.5s';
+        setTimeout(() => notification.remove(), 500);
+      }, 4000);
+    }
+  };
+</script>
+
+<!-- Cargar el script principal después de configurar las variables -->
+<script src="{{ url_for('static', filename='js/tema-global.js') }}"></script>
