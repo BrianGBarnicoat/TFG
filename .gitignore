@@ -1,5 +1,12 @@
 # Archivos de credenciales
-Programacion/claves seguras/*
+Programacion/claves\ seguras/*
+*.json
+*.env
+.env
+*.p8
+*.p12
+*.key
+*.pem
 !Programacion/claves seguras/.gitkeep
 
 # Archivos de Python
@@ -33,3 +40,11 @@ env/
 *.log
 *.tmp
 .DS_Store
+
+# Directorios específicos de IDE
+.idea/
+.vscode/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db

@@ -28,38 +28,23 @@ SCOPES = [
 
 # Configuración de Firebase
 if IS_PRODUCTION:
-    FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL')
-    FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET')
-    
-    # Verificar variables requeridas
-    missing_vars = []
-    if not FIREBASE_DB_URL:
-        missing_vars.append('FIREBASE_DB_URL')
-    if not FIREBASE_STORAGE_BUCKET:
-        missing_vars.append('FIREBASE_STORAGE_BUCKET')
-    
-    if missing_vars:
-        print(f"⚠️ Error: Las siguientes variables de entorno requeridas no están configuradas: {', '.join(missing_vars)}")
-        print("Por favor configura estas variables en Railway.")
-        sys.exit(1)
+    FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL', 'https://tfgpb-448609-default-rtdb.firebaseio.com')
+    FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET', 'tfgpb-448609.appspot.com')
 else:
     FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL', 'https://tfgpb-448609-default-rtdb.firebaseio.com')
-    FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET', 'tfgpb-448609.firebasestorage.app')
+    FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET', 'tfgpb-448609.appspot.com')
 
 # --------------------------------------------------------------------
 # Inicialización de Firebase
 # --------------------------------------------------------------------
-# Asegurarnos de tener referencia a la Realtime Database
+database = None
 if firebase_admin._apps:
     database = rtdb.reference("/")
 else:
-    # En producción, usar exclusivamente variables de entorno
-    if IS_PRODUCTION:
-        firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
-        if not firebase_credentials_json:
-            print("⚠️ Error: La variable FIREBASE_CREDENTIALS no está configurada.")
-            sys.exit(1)
-        
+    # Intentar inicializar Firebase con credenciales de variables de entorno primero
+    firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+    
+    if firebase_credentials_json:
         try:
             firebase_creds = json.loads(firebase_credentials_json)
             cred = credentials.Certificate(firebase_creds)
@@ -69,38 +54,18 @@ else:
             })
             database = rtdb.reference("/")
             print("Firebase inicializado correctamente con credenciales desde variable de entorno")
-        except json.JSONDecodeError:
-            print("⚠️ Error: El JSON de FIREBASE_CREDENTIALS no es válido.")
-            sys.exit(1)
         except Exception as e:
             print(f"ERROR al inicializar Firebase desde variable de entorno: {e}")
-            sys.exit(1)
+            
+            if IS_PRODUCTION:
+                sys.exit(1)
     else:
-        # En desarrollo, comprobar primero variable de entorno, luego archivo
-        firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
-        if firebase_credentials_json:
-            try:
-                firebase_creds = json.loads(firebase_credentials_json)
-                cred = credentials.Certificate(firebase_creds)
-                firebase_admin.initialize_app(cred, {
-                    'databaseURL': FIREBASE_DB_URL,
-                    'storageBucket': FIREBASE_STORAGE_BUCKET
-                })
-                database = rtdb.reference("/")
-                print("Firebase inicializado correctamente con credenciales desde variable de entorno")
-            except Exception as e:
-                print(f"ERROR al inicializar Firebase desde variable de entorno: {e}")
-                database = None
-        else:
-            # Si no hay variable de entorno, usar el archivo de credenciales
+        # Si no hay variable de entorno, usar el archivo de credenciales (solo en desarrollo)
+        if not IS_PRODUCTION:
             BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
             firebase_creds_path = os.path.join(BASE_DIR, 'claves seguras', 'firebase_admin_credentials.json')
             
-            # Verificar si el archivo existe
-            if not os.path.exists(firebase_creds_path):
-                print(f"ERROR: El archivo de credenciales no existe en: {firebase_creds_path}")
-                database = None
-            else:
+            if os.path.exists(firebase_creds_path):
                 try:
                     cred = credentials.Certificate(firebase_creds_path)
                     firebase_admin.initialize_app(cred, {
@@ -110,8 +75,12 @@ else:
                     database = rtdb.reference("/")
                     print(f"Firebase inicializado correctamente con credenciales desde: {firebase_creds_path}")
                 except Exception as e:
-                    print(f"ERROR al inicializar Firebase: {e}")
-                    database = None
+                    print(f"ERROR al inicializar Firebase desde archivo: {e}")
+            else:
+                print(f"ERROR: El archivo de credenciales de Firebase no existe en: {firebase_creds_path}")
+        else:
+            print("ERROR: No se encontraron credenciales de Firebase en producción")
+            sys.exit(1)
 
 # --------------------------------------------------------------------
 # Cargar credenciales de Google OAuth
@@ -119,37 +88,21 @@ else:
 google_creds = {}
 google_credentials_json = os.getenv('GOOGLE_OAUTH_CREDENTIALS')
 
-# En producción, usar exclusivamente variables de entorno
-if IS_PRODUCTION:
-    if not google_credentials_json:
-        print("⚠️ Error: La variable GOOGLE_OAUTH_CREDENTIALS no está configurada.")
-        sys.exit(1)
-    
+if google_credentials_json:
     try:
         google_creds = json.loads(google_credentials_json)['web']
         print("Credenciales de Google OAuth cargadas desde variable de entorno")
-    except json.JSONDecodeError:
-        print("⚠️ Error: El JSON de GOOGLE_OAUTH_CREDENTIALS no es válido.")
-        sys.exit(1)
-    except KeyError:
-        print("⚠️ Error: El JSON de GOOGLE_OAUTH_CREDENTIALS no contiene la clave 'web'.")
-        sys.exit(1)
     except Exception as e:
-        print(f"ERROR al cargar credenciales de Google OAuth: {e}")
-        sys.exit(1)
+        print(f"ERROR al cargar credenciales de Google OAuth desde variable de entorno: {e}")
+        
+        if IS_PRODUCTION:
+            sys.exit(1)
 else:
-    # En desarrollo, comprobar primero variable de entorno, luego archivo
-    if google_credentials_json:
-        try:
-            google_creds = json.loads(google_credentials_json)['web']
-            print("Credenciales de Google OAuth cargadas desde variable de entorno en desarrollo")
-        except Exception as e:
-            print(f"ERROR al cargar credenciales de Google OAuth desde variable de entorno: {e}")
-            
-    # Si no se pudieron cargar desde la variable de entorno, intentar con archivo
-    if not google_creds:
+    # Solo en desarrollo intentar cargar desde archivo
+    if not IS_PRODUCTION:
         BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
         GOOGLE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "google_oauth_credentials.json")
+        
         if os.path.exists(GOOGLE_CREDENTIALS_PATH):
             try:
                 with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
@@ -159,6 +112,28 @@ else:
                 print(f"ERROR al cargar archivo de credenciales de Google: {e}")
         else:
             print(f"ERROR: Archivo de credenciales de Google no encontrado en: {GOOGLE_CREDENTIALS_PATH}")
+    else:
+        print("ERROR: No se encontraron credenciales de Google OAuth en producción")
+        sys.exit(1)
+
+# Comprobar refresh token desde variable de entorno
+REFRESH_TOKEN = os.getenv('GOOGLE_REFRESH_TOKEN')
+if REFRESH_TOKEN and not IS_PRODUCTION:
+    print("Refresh token encontrado en variable de entorno")
+else:
+    # En desarrollo, podemos intentar cargar desde token.json
+    if not IS_PRODUCTION:
+        BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        TOKEN_PATH = os.path.join(BASE_DIR, "claves seguras", "token.json")
+        if os.path.exists(TOKEN_PATH):
+            try:
+                with open(TOKEN_PATH, 'r') as f:
+                    token_data = json.load(f)
+                    if 'refresh_token' in token_data:
+                        REFRESH_TOKEN = token_data['refresh_token']
+                        print(f"Refresh token cargado desde: {TOKEN_PATH}")
+            except Exception as e:
+                print(f"ERROR al cargar token.json: {e}")
 
 # --------------------------------------------------------------------
 # Funciones de autenticación OAuth
@@ -175,16 +150,29 @@ def get_credentials():
             # El refresh_token es esencial para refrescar el acceso; forzamos reautorización.
             return None
         creds = Credentials(**creds_data)
+    
+    # Si no hay credenciales en sesión pero tenemos un refresh token global
+    elif REFRESH_TOKEN and google_creds:
+        creds = Credentials(
+            token=None,
+            refresh_token=REFRESH_TOKEN,
+            token_uri=google_creds['token_uri'],
+            client_id=google_creds['client_id'],
+            client_secret=google_creds['client_secret'],
+            scopes=SCOPES
+        )
+        
     if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:  # Corregido: && por and
+        if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
+                # Actualizar sesión con nuevas credenciales
+                session['credentials'] = creds_to_dict(creds)
             except Exception:
-                del session['credentials']
+                del session['credentials'] if 'credentials' in session else None
                 return None
         else:
             return None
-        session['credentials'] = creds_to_dict(creds)
     return creds
 
 def creds_to_dict(creds):
@@ -228,7 +216,7 @@ def autorizar():
     
     # Crear flujo desde configuración
     try:
-        # En producción, crear flujo directamente desde las credenciales en memoria
+        # Crear flujo directamente desde las credenciales en memoria
         client_config = {
             "web": google_creds
         }
