@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VytalGym - Bienvenido</title>
+  <meta http-equiv="refresh" content="0;URL='/principal'" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    p {
+      color: #666;
+      margin: 20px 0;
+    }
+    .loader {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>VytalGym</h1>
+  <p>Cargando la aplicación...</p>
+  <div class="loader"></div>
+  <p>Si no eres redirigido automáticamente, <a href="/principal">haz clic aquí</a>.</p>
+</body>
+</html>
