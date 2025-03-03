@@ -169,7 +169,9 @@ def get_credentials():
                 # Actualizar sesión con nuevas credenciales
                 session['credentials'] = creds_to_dict(creds)
             except Exception:
-                del session['credentials'] if 'credentials' in session else None
+                # Corregido: no se puede usar del con expresión condicional
+                if 'credentials' in session:
+                    del session['credentials']
                 return None
         else:
             return None
