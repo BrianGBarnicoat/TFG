@@ -28,6 +28,10 @@ CREDENTIALS_PATH = os.path.join(BASE_DIR, 'claves seguras', 'google_oauth_creden
 print(f"BASE_DIR: {BASE_DIR}")
 print(f"Buscando credenciales en: {os.path.join(BASE_DIR, 'claves seguras')}")
 
+# Configuración de Firebase actualizada para producción
+FIREBASE_DB_URL = 'https://tfgpb-448609-default-rtdb.firebaseio.com'
+FIREBASE_STORAGE_BUCKET = 'tfgpb-448609.firebasestorage.app'
+
 # Asegurarnos de tener referencia a la Realtime Database
 if firebase_admin._apps:
     database = rtdb.reference("/")
@@ -55,12 +59,14 @@ else:
     try:
         cred = credentials.Certificate(firebase_creds_path)
         firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://tfgbp-d9051-default-rtdb.europe-west1.firebasedatabase.app'
+            'databaseURL': FIREBASE_DB_URL,
+            'storageBucket': FIREBASE_STORAGE_BUCKET
         })
         database = rtdb.reference("/")
         print(f"Firebase inicializado correctamente con credenciales desde: {firebase_creds_path}")
     except Exception as e:
         print(f"ERROR al inicializar Firebase: {e}")
+        print("Verifique que las credenciales sean correctas y que tenga permisos para la base de datos.")
         database = None
 
 # Cargar credenciales de Google

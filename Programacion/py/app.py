@@ -26,6 +26,10 @@ from fitness import get_fitness_data, get_sleep_data
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "firebase_admin_credentials.json")
 
+# Configuración de Firebase actualizada con las nuevas URLs
+FIREBASE_DB_URL = 'https://tfgpb-448609-default-rtdb.firebaseio.com'
+FIREBASE_STORAGE_BUCKET = 'tfgpb-448609.firebasestorage.app'
+
 if not os.path.exists(CREDENTIALS_PATH):
     print("⚠️ Error: El archivo de credenciales no existe en la ruta:", CREDENTIALS_PATH)
     sys.exit(1)
@@ -34,8 +38,8 @@ if not firebase_admin._apps:
     try:
         cred = credentials.Certificate(CREDENTIALS_PATH)
         firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://tfgbp-d9051-default-rtdb.europe-west1.firebasedatabase.app',
-            'storageBucket': 'tfgbp-d9051.appspot.com'
+            'databaseURL': FIREBASE_DB_URL,
+            'storageBucket': FIREBASE_STORAGE_BUCKET
         })
         database = rtdb.reference("/")
         test_value = database.get()
