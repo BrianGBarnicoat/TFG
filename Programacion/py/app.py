@@ -31,10 +31,31 @@ print(f"Ejecutando en entorno de {'producción' if IS_PRODUCTION else 'desarroll
 # Configuración de Firebase
 # --------------------------------------------------------------------
 
-# Usar variables de entorno para las credenciales
-firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
-FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL', 'https://tfgpb-448609-default-rtdb.firebaseio.com')
-FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET', 'tfgpb-448609.firebasestorage.app')
+# En producción, forzar uso exclusivo de variables de entorno para mayor seguridad
+if IS_PRODUCTION:
+    print("Entorno de producción detectado: utilizando variables de entorno exclusivamente")
+    firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+    FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL')
+    FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET')
+    
+    # Verificación de variables requeridas
+    missing_vars = []
+    if not firebase_credentials_json:
+        missing_vars.append('FIREBASE_CREDENTIALS')
+    if not FIREBASE_DB_URL:
+        missing_vars.append('FIREBASE_DB_URL')
+    if not FIREBASE_STORAGE_BUCKET:
+        missing_vars.append('FIREBASE_STORAGE_BUCKET')
+    
+    if missing_vars:
+        print(f"⚠️ Error: Las siguientes variables de entorno requeridas no están configuradas: {', '.join(missing_vars)}")
+        print("Por favor configura estas variables en Railway.")
+        sys.exit(1)
+else:
+    # En desarrollo, permitir fallback a archivos locales
+    firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+    FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL', 'https://tfgpb-448609-default-rtdb.firebaseio.com')
+    FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET', 'tfgpb-448609.firebasestorage.app')
 
 print(f"URLs de Firebase: DB={FIREBASE_DB_URL}, Storage={FIREBASE_STORAGE_BUCKET}")
 
@@ -42,23 +63,23 @@ print(f"URLs de Firebase: DB={FIREBASE_DB_URL}, Storage={FIREBASE_STORAGE_BUCKET
 database = None
 if not firebase_admin._apps:
     try:
-        # En producción, usar exclusivamente variables de entorno
+        # En producción, el código es más simple y directo
         if IS_PRODUCTION:
-            if not firebase_credentials_json:
-                print("⚠️ Error: La variable FIREBASE_CREDENTIALS no está configurada.")
-                sys.exit(1)
-            
             firebase_creds = json.loads(firebase_credentials_json)
             cred = credentials.Certificate(firebase_creds)
-            print("Usando credenciales de Firebase desde variable de entorno")
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': FIREBASE_DB_URL,
+                'storageBucket': FIREBASE_STORAGE_BUCKET
+            })
+            print("🔥 Firebase inicializado con credenciales desde variable de entorno")
         else:
-            # En desarrollo, intentar primero con variable de entorno, luego con archivo
+            # En desarrollo, mantener compatibilidad con archivo local
             if firebase_credentials_json:
                 firebase_creds = json.loads(firebase_credentials_json)
                 cred = credentials.Certificate(firebase_creds)
                 print("Usando credenciales de Firebase desde variable de entorno en desarrollo")
             else:
-                # En desarrollo, usar archivo físico como fallback
+                # Usar archivo físico como fallback
                 print("Variable FIREBASE_CREDENTIALS no encontrada, intentando usar archivo físico")
                 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
                 CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "firebase_admin_credentials.json")
@@ -70,23 +91,30 @@ if not firebase_admin._apps:
                 cred = credentials.Certificate(CREDENTIALS_PATH)
                 print(f"Usando credenciales de Firebase desde archivo: {CREDENTIALS_PATH}")
             
-        # Inicializar la aplicación con las URLs
-        firebase_admin.initialize_app(cred, {
-            'databaseURL': FIREBASE_DB_URL,
-            'storageBucket': FIREBASE_STORAGE_BUCKET
-        })
+            # Inicializar la aplicación con las URLs
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': FIREBASE_DB_URL,
+                'storageBucket': FIREBASE_STORAGE_BUCKET
+            })
         
-        # Verificar conexión
+        # Verificar conexión a la base de datos
         database = rtdb.reference("/")
         test_value = database.get()
-        print("🔥 Realtime Database inicializado correctamente.")
+        print("🔥 Realtime Database inicializado correctamente")
         
         # Verificar storage
         bucket = storage.bucket()
         print(f"🔥 Firebase Storage inicializado. Bucket: {bucket.name}")
         
+    except json.JSONDecodeError:
+        print("⚠️ Error al decodificar el JSON de las credenciales de Firebase")
+        if IS_PRODUCTION:
+            print("Verifica que la variable FIREBASE_CREDENTIALS contiene un JSON válido sin comillas adicionales")
+            sys.exit(1)
     except Exception as e:
-        print("⚠️ Error al inicializar Firebase:", e)
+        print(f"⚠️ Error al inicializar Firebase: {e}")
+        if IS_PRODUCTION:
+            sys.exit(1)
         database = None
 else:
     database = rtdb.reference("/")
@@ -95,20 +123,11 @@ else:
 # Configuración de rutas para archivos y directorios
 # --------------------------------------------------------------------
 # Ajustar rutas según el entorno (Railway vs. desarrollo local)
-if IS_PRODUCTION:
-    # En Railway, ajustar para la estructura del contenedor
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # /app/Programacion/py
-    TEMPLATES_DIR = os.path.join(BASE_DIR, '..', 'templates')  # Programacion/templates
-    STATIC_DIR = os.path.join(BASE_DIR, '..', 'static')  # Programacion/static
-    LOGIN_DIR = os.path.join(BASE_DIR, '..', 'Login')  # Programacion/Login
-    PROFILE_DIR = os.path.join(BASE_DIR, '..', 'profile')  # Programacion/profile
-else:
-    # En desarrollo local, mantener las rutas actuales
-    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
-    STATIC_DIR = os.path.join(BASE_DIR, 'static')
-    LOGIN_DIR = os.path.join(BASE_DIR, 'Login')
-    PROFILE_DIR = os.path.join(BASE_DIR, 'profile')
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # /app/Programacion/py o D:/TFG/Programacion/py
+TEMPLATES_DIR = os.path.join(BASE_DIR, '..', 'templates')  # Sube un nivel y va a templates
+STATIC_DIR = os.path.join(BASE_DIR, '..', 'static')  # Sube un nivel y va a static
+LOGIN_DIR = os.path.join(BASE_DIR, '..', 'Login')  # Sube un nivel y va a Login
+PROFILE_DIR = os.path.join(BASE_DIR, '..', 'profile')  # Sube un nivel y va a profile
 
 print(f"Directorios de la aplicación:")
 print(f"- BASE_DIR: {BASE_DIR}")
@@ -117,6 +136,12 @@ print(f"- STATIC_DIR: {STATIC_DIR}")
 print(f"- LOGIN_DIR: {LOGIN_DIR}")
 print(f"- PROFILE_DIR: {PROFILE_DIR}")
 
+# Verificar que los directorios existen
+dirs_to_check = [TEMPLATES_DIR, STATIC_DIR, LOGIN_DIR, PROFILE_DIR]
+for dir_path in dirs_to_check:
+    if not os.path.exists(dir_path):
+        print(f"⚠️ Advertencia: El directorio no existe: {dir_path}")
+
 # --------------------------------------------------------------------
 # Configuración de Flask
 # --------------------------------------------------------------------
@@ -124,7 +149,16 @@ print(f"- PROFILE_DIR: {PROFILE_DIR}")
 app = Flask(__name__, 
            template_folder=TEMPLATES_DIR,
            static_folder=STATIC_DIR)
-app.secret_key = os.getenv('SECRET_KEY', "clave_secreta_segura")  # Usar variable de entorno si existe
+
+# En producción, obtener la clave secreta de las variables de entorno
+if IS_PRODUCTION:
+    app.secret_key = os.getenv('SECRET_KEY')
+    if not app.secret_key:
+        print("⚠️ Advertencia: La variable SECRET_KEY no está configurada. Usando clave por defecto.")
+        app.secret_key = "clave_secreta_segura_temporal"
+else:
+    app.secret_key = os.getenv('SECRET_KEY', "clave_secreta_segura_desarrollo")
+    
 CORS(app)
 bcrypt = Bcrypt(app)
 
@@ -418,6 +452,7 @@ def callback():
 @login_required
 def configurar_foto():
     # Obtener el usuario actual y su email_key
+    
     usuario = session.get('user', {})
     
     # Imprimimos información para depurar
@@ -872,6 +907,7 @@ if __name__ == "__main__":
     if IS_PRODUCTION:
         # En Railway, vincula a 0.0.0.0 y usa el puerto proporcionado por la variable de entorno
         port = int(os.getenv('PORT', 8000))
+        print(f"Iniciando servidor en producción: 0.0.0.0:{port}")
         app.run(host='0.0.0.0', port=port, debug=False)
     else:
         # En desarrollo local
@@ -879,6 +915,7 @@ if __name__ == "__main__":
             iniciar_asistente()
         else:
             # Usar puerto 8000 para desarrollo local
+            print("Iniciando servidor en desarrollo: localhost:8000")
             app.run(debug=True, port=8000)
 
 

@@ -9,6 +9,7 @@ from google.auth.transport.requests import Request
 from flask import session, url_for, redirect, request, render_template
 import json
 import requests
+import sys
 
 # Detectar entorno de ejecución
 IS_PRODUCTION = os.getenv('RAILWAY_PUBLIC_DOMAIN') is not None
@@ -26,8 +27,24 @@ SCOPES = [
 ]
 
 # Configuración de Firebase
-FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL', 'https://tfgpb-448609-default-rtdb.firebaseio.com')
-FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET', 'tfgpb-448609.firebasestorage.app')
+if IS_PRODUCTION:
+    FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL')
+    FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET')
+    
+    # Verificar variables requeridas
+    missing_vars = []
+    if not FIREBASE_DB_URL:
+        missing_vars.append('FIREBASE_DB_URL')
+    if not FIREBASE_STORAGE_BUCKET:
+        missing_vars.append('FIREBASE_STORAGE_BUCKET')
+    
+    if missing_vars:
+        print(f"⚠️ Error: Las siguientes variables de entorno requeridas no están configuradas: {', '.join(missing_vars)}")
+        print("Por favor configura estas variables en Railway.")
+        sys.exit(1)
+else:
+    FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL', 'https://tfgpb-448609-default-rtdb.firebaseio.com')
+    FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET', 'tfgpb-448609.firebasestorage.app')
 
 # --------------------------------------------------------------------
 # Inicialización de Firebase
@@ -41,20 +58,23 @@ else:
         firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
         if not firebase_credentials_json:
             print("⚠️ Error: La variable FIREBASE_CREDENTIALS no está configurada.")
-            database = None
-        else:
-            try:
-                firebase_creds = json.loads(firebase_credentials_json)
-                cred = credentials.Certificate(firebase_creds)
-                firebase_admin.initialize_app(cred, {
-                    'databaseURL': FIREBASE_DB_URL,
-                    'storageBucket': FIREBASE_STORAGE_BUCKET
-                })
-                database = rtdb.reference("/")
-                print("Firebase inicializado correctamente con credenciales desde variable de entorno")
-            except Exception as e:
-                print(f"ERROR al inicializar Firebase desde variable de entorno: {e}")
-                database = None
+            sys.exit(1)
+        
+        try:
+            firebase_creds = json.loads(firebase_credentials_json)
+            cred = credentials.Certificate(firebase_creds)
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': FIREBASE_DB_URL,
+                'storageBucket': FIREBASE_STORAGE_BUCKET
+            })
+            database = rtdb.reference("/")
+            print("Firebase inicializado correctamente con credenciales desde variable de entorno")
+        except json.JSONDecodeError:
+            print("⚠️ Error: El JSON de FIREBASE_CREDENTIALS no es válido.")
+            sys.exit(1)
+        except Exception as e:
+            print(f"ERROR al inicializar Firebase desde variable de entorno: {e}")
+            sys.exit(1)
     else:
         # En desarrollo, comprobar primero variable de entorno, luego archivo
         firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
@@ -103,12 +123,20 @@ google_credentials_json = os.getenv('GOOGLE_OAUTH_CREDENTIALS')
 if IS_PRODUCTION:
     if not google_credentials_json:
         print("⚠️ Error: La variable GOOGLE_OAUTH_CREDENTIALS no está configurada.")
-    else:
-        try:
-            google_creds = json.loads(google_credentials_json)['web']
-            print("Credenciales de Google OAuth cargadas desde variable de entorno")
-        except Exception as e:
-            print(f"ERROR al cargar credenciales de Google OAuth: {e}")
+        sys.exit(1)
+    
+    try:
+        google_creds = json.loads(google_credentials_json)['web']
+        print("Credenciales de Google OAuth cargadas desde variable de entorno")
+    except json.JSONDecodeError:
+        print("⚠️ Error: El JSON de GOOGLE_OAUTH_CREDENTIALS no es válido.")
+        sys.exit(1)
+    except KeyError:
+        print("⚠️ Error: El JSON de GOOGLE_OAUTH_CREDENTIALS no contiene la clave 'web'.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"ERROR al cargar credenciales de Google OAuth: {e}")
+        sys.exit(1)
 else:
     # En desarrollo, comprobar primero variable de entorno, luego archivo
     if google_credentials_json:
