@@ -10,6 +10,10 @@ from flask import session, url_for, redirect, request, render_template
 import json
 import requests
 
+# Detectar entorno de ejecución
+IS_PRODUCTION = os.getenv('RAILWAY_PUBLIC_DOMAIN') is not None
+print(f"Auth ejecutando en entorno de {'producción' if IS_PRODUCTION else 'desarrollo'}")
+
 # Definimos los alcances que necesitamos
 SCOPES = [
     'https://www.googleapis.com/auth/fitness.activity.read',
@@ -21,93 +25,116 @@ SCOPES = [
     'openid'
 ]
 
-# Corrección de ruta absoluta para encontrar los archivos de credenciales
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-CREDENTIALS_PATH = os.path.join(BASE_DIR, 'claves seguras', 'google_oauth_credentials.json')
-
-print(f"BASE_DIR: {BASE_DIR}")
-print(f"Buscando credenciales en: {os.path.join(BASE_DIR, 'claves seguras')}")
-
-# Configuración de Firebase actualizada para producción
+# Configuración de Firebase
 FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL', 'https://tfgpb-448609-default-rtdb.firebaseio.com')
 FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET', 'tfgpb-448609.firebasestorage.app')
 
+# --------------------------------------------------------------------
+# Inicialización de Firebase
+# --------------------------------------------------------------------
 # Asegurarnos de tener referencia a la Realtime Database
 if firebase_admin._apps:
     database = rtdb.reference("/")
 else:
-    # Configurar Firebase (si no está ya inicializado)
-    # Primero intentar usar la variable de entorno FIREBASE_CREDENTIALS
-    firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
-    if firebase_credentials_json:
-        try:
-            print("Usando credenciales de Firebase desde variable de entorno")
-            firebase_creds = credentials.Certificate(json.loads(firebase_credentials_json))
-            firebase_admin.initialize_app(firebase_creds, {
-                'databaseURL': FIREBASE_DB_URL,
-                'storageBucket': FIREBASE_STORAGE_BUCKET
-            })
-            database = rtdb.reference("/")
-            print("Firebase inicializado correctamente con credenciales desde variable de entorno")
-        except Exception as e:
-            print(f"ERROR al inicializar Firebase desde variable de entorno: {e}")
+    # En producción, usar exclusivamente variables de entorno
+    if IS_PRODUCTION:
+        firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+        if not firebase_credentials_json:
+            print("⚠️ Error: La variable FIREBASE_CREDENTIALS no está configurada.")
             database = None
+        else:
+            try:
+                firebase_creds = json.loads(firebase_credentials_json)
+                cred = credentials.Certificate(firebase_creds)
+                firebase_admin.initialize_app(cred, {
+                    'databaseURL': FIREBASE_DB_URL,
+                    'storageBucket': FIREBASE_STORAGE_BUCKET
+                })
+                database = rtdb.reference("/")
+                print("Firebase inicializado correctamente con credenciales desde variable de entorno")
+            except Exception as e:
+                print(f"ERROR al inicializar Firebase desde variable de entorno: {e}")
+                database = None
     else:
-        # Si no hay variable de entorno, usar el archivo de credenciales
-        firebase_creds_path = os.path.join(BASE_DIR, 'claves seguras', 'firebase_admin_credentials.json')
-        
-        # Verificar si el archivo existe
-        if not os.path.exists(firebase_creds_path):
-            print(f"ERROR: El archivo de credenciales no existe en: {firebase_creds_path}")
-            print("Intenta especificar la ruta completa en lugar de una ruta relativa.")
-            # Intentar buscar el archivo en otras ubicaciones comunes
-            alt_paths = [
-                os.path.join(BASE_DIR, 'Programacion', 'claves seguras', 'firebase_admin_credentials.json'),
-                os.path.join(BASE_DIR, 'claves seguras', 'firebase_credentials.json'),
-                os.path.join(os.path.dirname(os.path.dirname(__file__)), 'claves seguras', 'firebase_admin_credentials.json')
-            ]
-            for alt_path in alt_paths:
-                if os.path.exists(alt_path):
-                    print(f"Archivo encontrado en ruta alternativa: {alt_path}")
-                    firebase_creds_path = alt_path
-                    break
-        
-        try:
-            cred = credentials.Certificate(firebase_creds_path)
-            firebase_admin.initialize_app(cred, {
-                'databaseURL': FIREBASE_DB_URL,
-                'storageBucket': FIREBASE_STORAGE_BUCKET
-            })
-            database = rtdb.reference("/")
-            print(f"Firebase inicializado correctamente con credenciales desde: {firebase_creds_path}")
-        except Exception as e:
-            print(f"ERROR al inicializar Firebase: {e}")
-            print("Verifique que las credenciales sean correctas y que tenga permisos para la base de datos.")
-            database = None
+        # En desarrollo, comprobar primero variable de entorno, luego archivo
+        firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+        if firebase_credentials_json:
+            try:
+                firebase_creds = json.loads(firebase_credentials_json)
+                cred = credentials.Certificate(firebase_creds)
+                firebase_admin.initialize_app(cred, {
+                    'databaseURL': FIREBASE_DB_URL,
+                    'storageBucket': FIREBASE_STORAGE_BUCKET
+                })
+                database = rtdb.reference("/")
+                print("Firebase inicializado correctamente con credenciales desde variable de entorno")
+            except Exception as e:
+                print(f"ERROR al inicializar Firebase desde variable de entorno: {e}")
+                database = None
+        else:
+            # Si no hay variable de entorno, usar el archivo de credenciales
+            BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+            firebase_creds_path = os.path.join(BASE_DIR, 'claves seguras', 'firebase_admin_credentials.json')
+            
+            # Verificar si el archivo existe
+            if not os.path.exists(firebase_creds_path):
+                print(f"ERROR: El archivo de credenciales no existe en: {firebase_creds_path}")
+                database = None
+            else:
+                try:
+                    cred = credentials.Certificate(firebase_creds_path)
+                    firebase_admin.initialize_app(cred, {
+                        'databaseURL': FIREBASE_DB_URL,
+                        'storageBucket': FIREBASE_STORAGE_BUCKET
+                    })
+                    database = rtdb.reference("/")
+                    print(f"Firebase inicializado correctamente con credenciales desde: {firebase_creds_path}")
+                except Exception as e:
+                    print(f"ERROR al inicializar Firebase: {e}")
+                    database = None
 
-# Cargar credenciales de Google - primero intentar desde variable de entorno
+# --------------------------------------------------------------------
+# Cargar credenciales de Google OAuth
+# --------------------------------------------------------------------
 google_creds = {}
 google_credentials_json = os.getenv('GOOGLE_OAUTH_CREDENTIALS')
 
-if google_credentials_json:
-    try:
-        print("Usando credenciales de Google OAuth desde variable de entorno")
-        google_creds = json.loads(google_credentials_json)['web']
-    except Exception as e:
-        print(f"ERROR al cargar credenciales de Google OAuth desde variable de entorno: {e}")
-else:
-    # Si no hay variable de entorno, usar el archivo de credenciales
-    GOOGLE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "google_oauth_credentials.json")
-    if os.path.exists(GOOGLE_CREDENTIALS_PATH):
-        try:
-            with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
-                google_creds = json.load(f)['web']
-            print(f"Credenciales de Google OAuth cargadas desde: {GOOGLE_CREDENTIALS_PATH}")
-        except Exception as e:
-            print(f"ERROR al cargar archivo de credenciales de Google: {e}")
+# En producción, usar exclusivamente variables de entorno
+if IS_PRODUCTION:
+    if not google_credentials_json:
+        print("⚠️ Error: La variable GOOGLE_OAUTH_CREDENTIALS no está configurada.")
     else:
-        print(f"ERROR: Archivo de credenciales de Google no encontrado en: {GOOGLE_CREDENTIALS_PATH}")
+        try:
+            google_creds = json.loads(google_credentials_json)['web']
+            print("Credenciales de Google OAuth cargadas desde variable de entorno")
+        except Exception as e:
+            print(f"ERROR al cargar credenciales de Google OAuth: {e}")
+else:
+    # En desarrollo, comprobar primero variable de entorno, luego archivo
+    if google_credentials_json:
+        try:
+            google_creds = json.loads(google_credentials_json)['web']
+            print("Credenciales de Google OAuth cargadas desde variable de entorno en desarrollo")
+        except Exception as e:
+            print(f"ERROR al cargar credenciales de Google OAuth desde variable de entorno: {e}")
+            
+    # Si no se pudieron cargar desde la variable de entorno, intentar con archivo
+    if not google_creds:
+        BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        GOOGLE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "google_oauth_credentials.json")
+        if os.path.exists(GOOGLE_CREDENTIALS_PATH):
+            try:
+                with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
+                    google_creds = json.load(f)['web']
+                print(f"Credenciales de Google OAuth cargadas desde: {GOOGLE_CREDENTIALS_PATH}")
+            except Exception as e:
+                print(f"ERROR al cargar archivo de credenciales de Google: {e}")
+        else:
+            print(f"ERROR: Archivo de credenciales de Google no encontrado en: {GOOGLE_CREDENTIALS_PATH}")
 
+# --------------------------------------------------------------------
+# Funciones de autenticación OAuth
+# --------------------------------------------------------------------
 def get_credentials():
     """
     Devuelve las credenciales (token) de Google guardadas en la sesión.
@@ -151,12 +178,20 @@ def autorizar():
         print("ERROR: No se encontraron credenciales de Google OAuth")
         return "No se encontraron credenciales de Google OAuth. Contacte al administrador.", 500
 
-    # Determinar el redirect_uri basado en el entorno (desarrollo o producción)
+    # Determinar el redirect_uri basado en el entorno
     redirect_uri = None
     
-    # Si estamos en Railway, usar el dominio público como redirect_uri
-    if os.getenv("RAILWAY_PUBLIC_DOMAIN"):
-        redirect_uri = f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}/oauth2callback"
+    # Si estamos en Railway o producción, usar el dominio público
+    if IS_PRODUCTION:
+        if os.getenv("RAILWAY_PUBLIC_DOMAIN"):
+            redirect_uri = f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}/oauth2callback"
+        # Si se ha configurado un dominio personalizado
+        elif os.getenv("CUSTOM_DOMAIN"):
+            redirect_uri = f"https://{os.getenv('CUSTOM_DOMAIN')}/oauth2callback"
+        else:
+            # Usar un fallback si no hay ningún dominio configurado
+            redirect_uri = url_for('callback', _external=True)
+        
         print(f"Usando redirect_uri para producción: {redirect_uri}")
     else:
         # En desarrollo, usar el redirect_uri generado por Flask
@@ -165,16 +200,11 @@ def autorizar():
     
     # Crear flujo desde configuración
     try:
-        # Si tenemos el archivo de credenciales, usarlo
-        if os.path.exists(CREDENTIALS_PATH):
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
-            flow.redirect_uri = redirect_uri
-        else:
-            # Si no, crear flujo desde las credenciales en memoria
-            client_config = {
-                "web": google_creds
-            }
-            flow = Flow.from_client_config(client_config, SCOPES, redirect_uri=redirect_uri)
+        # En producción, crear flujo directamente desde las credenciales en memoria
+        client_config = {
+            "web": google_creds
+        }
+        flow = Flow.from_client_config(client_config, SCOPES, redirect_uri=redirect_uri)
         
         authorization_url, state = flow.authorization_url(
             access_type='offline',
@@ -242,8 +272,6 @@ def oauth2callback():
             return f"Error al verificar el ID Token: {str(e)}", 400
 
         # Procesar información del usuario y guardarla en la sesión/DB
-        # ...existing code...
-        
         # Extraer datos del usuario
         email = user_info.get("email")
         nombre = user_info.get("name", "")
@@ -308,5 +336,3 @@ def oauth2callback():
 #     if 'user' in session:
 #         return render_template('dashboard.html')
 #     return redirect(url_for('login'))
-
-# Nota: El código comentado (por ejemplo, las funciones login y dashboard) está inactivo y no se usa.
