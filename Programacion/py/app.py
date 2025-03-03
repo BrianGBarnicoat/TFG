@@ -822,4 +822,11 @@ if __name__ == "__main__":
     if "--menu" in sys.argv:
         iniciar_asistente()
     else:
-        app.run(debug=True, port=8000)
+        # Configuración para entorno de producción (Railway) o desarrollo local
+        port = int(os.getenv("PORT", 8000))  # Usa el puerto de Railway o 8000 por defecto
+        debug_mode = os.getenv("ENVIRONMENT", "development").lower() != "production"
+        
+        print(f"Iniciando servidor en puerto: {port}, modo debug: {debug_mode}")
+        app.run(host="0.0.0.0", port=port, debug=debug_mode)
+
+
