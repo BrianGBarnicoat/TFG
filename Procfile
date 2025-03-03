@@ -1,1 +1,1 @@
-web: python Programacion/py/app.py
+web: cd Programacion/py/app.py && gunicorn app:app --workers 4 --bind 0.0.0.0:$PORT
