@@ -38,19 +38,19 @@ if IS_PRODUCTION:
     FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL')
     FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET')
     
-    # Verificación de variables requeridas
-    missing_vars = []
+    # Verificación detallada de variables requeridas
     if not firebase_credentials_json:
-        missing_vars.append('FIREBASE_CREDENTIALS')
-    if not FIREBASE_DB_URL:
-        missing_vars.append('FIREBASE_DB_URL')
-    if not FIREBASE_STORAGE_BUCKET:
-        missing_vars.append('FIREBASE_STORAGE_BUCKET')
-    
-    if missing_vars:
-        print(f"⚠️ Error: Las siguientes variables de entorno requeridas no están configuradas: {', '.join(missing_vars)}")
-        print("Por favor configura estas variables en Railway.")
+        print("⚠️ ERROR CRÍTICO: La variable FIREBASE_CREDENTIALS no está configurada en Railway")
+        print("Consulta la documentación para configurar correctamente esta variable")
         sys.exit(1)
+        
+    if not FIREBASE_DB_URL:
+        print("⚠️ ERROR: FIREBASE_DB_URL no está configurada. Usando URL por defecto.")
+        FIREBASE_DB_URL = 'https://tfgpb-448609-default-rtdb.firebaseio.com'
+        
+    if not FIREBASE_STORAGE_BUCKET:
+        print("⚠️ ERROR: FIREBASE_STORAGE_BUCKET no está configurada. Usando bucket por defecto.")
+        FIREBASE_STORAGE_BUCKET = 'tfgpb-448609.firebasestorage.app'
 else:
     # En desarrollo, permitir fallback a archivos locales
     firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
@@ -65,13 +65,36 @@ if not firebase_admin._apps:
     try:
         # En producción, el código es más simple y directo
         if IS_PRODUCTION:
-            firebase_creds = json.loads(firebase_credentials_json)
-            cred = credentials.Certificate(firebase_creds)
-            firebase_admin.initialize_app(cred, {
-                'databaseURL': FIREBASE_DB_URL,
-                'storageBucket': FIREBASE_STORAGE_BUCKET
-            })
-            print("🔥 Firebase inicializado con credenciales desde variable de entorno")
+            try:
+                print("Iniciando Firebase con credenciales desde variable de entorno...")
+                # Parsear el JSON de las credenciales
+                firebase_creds = json.loads(firebase_credentials_json)
+                
+                # Verificar que el JSON tiene la estructura esperada
+                if 'type' not in firebase_creds or firebase_creds['type'] != 'service_account':
+                    print("⚠️ ERROR: El JSON de FIREBASE_CREDENTIALS no es una cuenta de servicio válida")
+                    sys.exit(1)
+                    
+                # Inicializar con las credenciales
+                cred = credentials.Certificate(firebase_creds)
+                firebase_admin.initialize_app(cred, {
+                    'databaseURL': FIREBASE_DB_URL,
+                    'storageBucket': FIREBASE_STORAGE_BUCKET
+                })
+                
+                # Verificar que la conexión funciona
+                database = rtdb.reference("/_railway_test")
+                database.set({"test": True, "timestamp": str(datetime.now())})
+                print("🔥 Firebase inicializado correctamente desde variable de entorno")
+            except json.JSONDecodeError:
+                print("⚠️ ERROR: El valor de FIREBASE_CREDENTIALS no es un JSON válido")
+                print("Verifica que la variable esté correctamente formateada sin comillas adicionales")
+                print("Usa el Raw Editor en Railway para configurar esta variable")
+                sys.exit(1)
+            except Exception as e:
+                print(f"⚠️ ERROR al inicializar Firebase: {str(e)}")
+                print("Verifica las credenciales y URLs de Firebase")
+                sys.exit(1)
         else:
             # En desarrollo, mantener compatibilidad con archivo local
             if firebase_credentials_json:
@@ -106,13 +129,8 @@ if not firebase_admin._apps:
         bucket = storage.bucket()
         print(f"🔥 Firebase Storage inicializado. Bucket: {bucket.name}")
         
-    except json.JSONDecodeError:
-        print("⚠️ Error al decodificar el JSON de las credenciales de Firebase")
-        if IS_PRODUCTION:
-            print("Verifica que la variable FIREBASE_CREDENTIALS contiene un JSON válido sin comillas adicionales")
-            sys.exit(1)
     except Exception as e:
-        print(f"⚠️ Error al inicializar Firebase: {e}")
+        print(f"⚠️ Error general al inicializar Firebase: {e}")
         if IS_PRODUCTION:
             sys.exit(1)
         database = None
