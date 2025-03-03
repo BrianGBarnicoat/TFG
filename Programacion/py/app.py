@@ -5,6 +5,7 @@ import sys
 import os
 import threading
 import time
+import json
 from datetime import datetime, timedelta
 
 import firebase_admin
@@ -23,36 +24,63 @@ from fitness import get_fitness_data, get_sleep_data
 # --------------------------------------------------------------------
 # Configuración de Firebase
 # --------------------------------------------------------------------
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "firebase_admin_credentials.json")
 
-# Configuración de Firebase actualizada con las nuevas URLs
-FIREBASE_DB_URL = 'https://tfgpb-448609-default-rtdb.firebaseio.com'
-FIREBASE_STORAGE_BUCKET = 'tfgpb-448609.firebasestorage.app'
+# Usar las variables de entorno si están disponibles
+firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+FIREBASE_DB_URL = os.getenv('FIREBASE_DB_URL', 'https://tfgpb-448609-default-rtdb.firebaseio.com')
+FIREBASE_STORAGE_BUCKET = os.getenv('FIREBASE_STORAGE_BUCKET', 'tfgpb-448609.firebasestorage.app')
 
-if not os.path.exists(CREDENTIALS_PATH):
-    print("⚠️ Error: El archivo de credenciales no existe en la ruta:", CREDENTIALS_PATH)
-    sys.exit(1)
+# Variables para mensajes de depuración
+is_railway = os.getenv('RAILWAY_PUBLIC_DOMAIN') is not None
+env_source = "Railway" if is_railway else "entorno local"
+print(f"Ambiente detectado: {env_source}")
+print(f"URLs de Firebase: DB={FIREBASE_DB_URL}, Storage={FIREBASE_STORAGE_BUCKET}")
 
+# Inicializar Firebase
+database = None
 if not firebase_admin._apps:
     try:
-        cred = credentials.Certificate(CREDENTIALS_PATH)
+        # Primero intentar usar las credenciales desde la variable de entorno
+        if firebase_credentials_json:
+            print("Inicializando Firebase con credenciales desde variable de entorno")
+            firebase_creds = json.loads(firebase_credentials_json)
+            cred = credentials.Certificate(firebase_creds)
+        else:
+            # Si no hay variable de entorno, usar archivo físico como fallback
+            print("Variable FIREBASE_CREDENTIALS no encontrada, intentando usar archivo físico")
+            BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "firebase_admin_credentials.json")
+            
+            if not os.path.exists(CREDENTIALS_PATH):
+                print("⚠️ Error: El archivo de credenciales no existe en la ruta:", CREDENTIALS_PATH)
+                if is_railway:
+                    print("Estás en Railway pero no tienes la variable FIREBASE_CREDENTIALS configurada.")
+                sys.exit(1)
+            
+            cred = credentials.Certificate(CREDENTIALS_PATH)
+            
+        # Inicializar la aplicación con las URLs (de variables de entorno o por defecto)
         firebase_admin.initialize_app(cred, {
             'databaseURL': FIREBASE_DB_URL,
             'storageBucket': FIREBASE_STORAGE_BUCKET
         })
+        
+        # Verificar conexión a la base de datos
         database = rtdb.reference("/")
         test_value = database.get()
         print("🔥 Realtime Database inicializado correctamente.")
-        print("Valor obtenido en la raíz de la BD:", test_value)
         
         # Verificar que el bucket de storage esté configurado correctamente
         bucket = storage.bucket()
-        print(f"🔥 Firebase inicializado correctamente. Bucket Storage: {bucket.name}")
-        print(f"🔗 URL gs de Firebase Storage: gs://{bucket.name}")
+        print(f"🔥 Firebase Storage inicializado. Bucket: {bucket.name}")
         
     except Exception as e:
         print("⚠️ Error al inicializar Firebase:", e)
+        if is_railway:
+            print("Verifica que las variables de entorno estén correctamente configuradas en Railway:")
+            print("1. FIREBASE_CREDENTIALS: JSON completo de las credenciales de servicio")
+            print("2. FIREBASE_DB_URL: URL correcta de la base de datos")
+            print("3. FIREBASE_STORAGE_BUCKET: Nombre correcto del bucket de storage")
         database = None
 else:
     database = rtdb.reference("/")
@@ -824,4 +852,4 @@ if __name__ == "__main__":
     else:
         app.run(debug=True, port=8000)
 
-        
+
