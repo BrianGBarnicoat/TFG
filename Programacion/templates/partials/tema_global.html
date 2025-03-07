@@ -187,5 +187,87 @@
   }
 </style>
 
+<!-- Sistema de Temas - Coloca este fragmento en el head de cada página -->
+<style>
+  :root {
+    /* Tema por defecto - Variables CSS base */
+    --primary-color: #58a058;
+    --secondary-color: #007bff;
+    --accent-color: #ff7a45;
+    --text-color: #333333;
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --header-bg: #001a33;
+    --gradient-start: #001a33;
+    --gradient-middle: #002838;
+    --gradient-end: #002f2f;
+  }
+  
+  /* Tema oscuro */
+  [data-theme="dark"] {
+    --primary-color: #6ab86a;
+    --secondary-color: #4da3ff;
+    --accent-color: #ff9a6b;
+    --text-color: #e0e0e0;
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --header-bg: #000a14;
+    --gradient-start: #000a14;
+    --gradient-middle: #001019;
+    --gradient-end: #001a1a;
+  }
+  
+  /* Tema de alto contraste */
+  [data-theme="high-contrast"] {
+    --primary-color: #ffff00;
+    --secondary-color: #00ffff;
+    --accent-color: #ff00ff;
+    --text-color: #ffffff;
+    --bg-color: #000000;
+    --card-bg: #222222;
+    --header-bg: #000000;
+    --gradient-start: #000000;
+    --gradient-middle: #111111;
+    --gradient-end: #222222;
+  }
+  
+  /* Aplicar colores específicos del usuario si existen en la sesión */
+  {% if session.user_preferences and session.user_preferences.colores %}
+    {% for variable, valor in session.user_preferences.colores.items() %}
+      :root {
+        {{ variable }}: {{ valor }};
+      }
+    {% endfor %}
+  {% endif %}
+</style>
+
+<!-- Script para aplicar el tema guardado -->
+<script>
+  // Función para cambiar el tema
+  function setTheme(themeName) {
+    document.documentElement.setAttribute('data-theme', themeName);
+    localStorage.setItem('theme', themeName);
+  }
+
+  // Aplicar tema al cargar
+  (function() {
+    // Obtener tema guardado o usar preferencias de usuario
+    {% if session.user_preferences and session.user_preferences.tema %}
+      setTheme("{{ session.user_preferences.tema }}");
+    {% else %}
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        setTheme(savedTheme);
+      } else {
+        // Verificar si el usuario prefiere modo oscuro en su sistema
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        if (prefersDarkScheme.matches) {
+          setTheme('dark');
+        }
+      }
+    {% endif %}
+  })();
+</script>
+
 <!-- Carga del script optimizado para temas -->
 <script src="{{ url_for('static', filename='js/direct-theme.js') }}"></script>

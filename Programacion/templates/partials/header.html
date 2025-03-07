@@ -8,35 +8,59 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <header>
-      <div class="header-left">
-        <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
-      </div>
-      <nav class="header-center">
-        <a href="{{ url_for('salud') }}">Salud</a>
-        <a href="{{ url_for('fitness') }}">Fitness</a>
-        <a href="{{ url_for('alimentacion') }}">Alimentación</a>
-        <a href="{{ url_for('precios') }}">Servicios</a>
-        <a href="{{ url_for('contacto') }}">Contacto</a>
-      </nav>
-      <div class="header-right">
-        {% if session.user %}
-          <div class="header-user">
-            {% if session.user.foto %}
-              <a href="{{ url_for('configurar_foto') }}" class="profile-link">
-                <img src="{{ session.user.foto }}"
-                     alt="{{ session.user.nombre }}"
-                     class="profile-img"
-                     title="Ir a configuración de foto">
-              </a>
-            {% endif %}
-            <a href="{{ url_for('logout') }}" class="logout-link" title="Cerrar sesión">
-              <i class="fas fa-sign-out-alt"></i>
+    <header class="main-header">
+      <div class="container">
+        <div class="logo">
+          <a href="{{ url_for('principal') }}">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="VytalGym Logo" height="40">
+            <span>VytalGym</span>
+          </a>
+        </div>
+        
+        <nav class="main-nav">
+          <ul>
+            <li><a href="{{ url_for('principal') }}">Inicio</a></li>
+            <li><a href="{{ url_for('fitness') }}">Fitness</a></li>
+            <li><a href="{{ url_for('alimentacion') }}">Alimentación</a></li>
+            <li><a href="{{ url_for('salud') }}">Salud</a></li>
+          </ul>
+        </nav>
+        
+        <div class="user-menu">
+          {% if 'user' in session %}
+            <div class="user-dropdown">
+              <button class="user-button">
+                {% if session['user'].get('foto') %}
+                  <img src="{{ session['user']['foto'] }}" alt="Foto de perfil" class="profile-pic">
+                {% else %}
+                  <i class="fas fa-user"></i>
+                {% endif %}
+                <span>{{ session['user']['nombre'] }}</span>
+                <i class="fas fa-caret-down"></i>
+              </button>
+              <div class="dropdown-content">
+                <a href="{{ url_for('configurar_foto') }}">
+                  <i class="fas fa-user-cog"></i> Perfil
+                </a>
+                <a href="{{ url_for('alimentacion') }}">
+                  <i class="fas fa-utensils"></i> Alimentación
+                </a>
+                {% if session['user'].get('login_method') != 'google' %}
+                  <a href="{{ url_for('cambiar_password') }}">
+                    <i class="fas fa-key"></i> Cambiar contraseña
+                  </a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}">
+                  <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                </a>
+              </div>
+            </div>
+          {% else %}
+            <a href="{{ url_for('login') }}" class="login-button">
+              <i class="fas fa-sign-in-alt"></i> Iniciar sesión
             </a>
-          </div>
-        {% else %}
-          <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
-        {% endif %}
+          {% endif %}
+        </div>
       </div>
     </header>
     

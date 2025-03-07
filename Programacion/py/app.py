@@ -821,6 +821,32 @@ def resetear_colores_usuario():
         print(f"Error al restablecer colores: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Rutas específicas para la API de calendario
+@app.route('/api/calendar/events')
+@login_required
+def api_calendar_events():
+    """
+    Obtiene los eventos del calendario del usuario
+    """
+    events_data = get_calendar_events()
+    return jsonify(events_data)
+
+@app.route('/api/calendar/event/create', methods=['POST'])
+@login_required
+def api_calendar_event_create():
+    """
+    Crea un nuevo evento en el calendario
+    """
+    return agregar_evento()
+
+@app.route('/api/calendar/event/delete', methods=['POST'])
+@login_required
+def api_calendar_event_delete():
+    """
+    Elimina un evento del calendario
+    """
+    return borrar_evento()
+
 # ----------------s----------------------------------------------------
 # Funciones para iniciar el servidor
 # --------------------------------------------------------------------
