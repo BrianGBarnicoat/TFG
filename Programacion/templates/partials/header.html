@@ -1,100 +1,270 @@
-<style>
-  /* Estilos del header que estaban antes */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background: rgba(0, 10, 20, 0.95);
-    color: #fff;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    transition: transform 0.3s ease-in-out;
-    z-index: 9999; /* Z-index muy alto para garantizar que esté encima de todo */
-  }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Asegurarnos de que se carga el sistema de tema global -->
+    {% include 'partials/tema_global.html' %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+      <div class="header-left">
+        <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
+      </div>
+      <nav class="header-center">
+        <a href="{{ url_for('salud') }}">Salud</a>
+        <a href="{{ url_for('fitness') }}">Fitness</a>
+        <a href="{{ url_for('alimentacion') }}">Alimentación</a>
+        <a href="{{ url_for('precios') }}">Servicios</a>
+        <a href="{{ url_for('contacto') }}">Contacto</a>
+      </nav>
+      <div class="header-right">
+        {% if session.user %}
+          <div class="header-user">
+            {% if session.user.foto %}
+              <a href="{{ url_for('configurar_foto') }}" class="profile-link">
+                <img src="{{ session.user.foto }}"
+                     alt="{{ session.user.nombre }}"
+                     class="profile-img"
+                     title="Ir a configuración de foto">
+              </a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="logout-link" title="Cerrar sesión">
+              <i class="fas fa-sign-out-alt"></i>
+            </a>
+          </div>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
+        {% endif %}
+      </div>
+    </header>
+    
+    <!-- Estilos mejorados del header con variables CSS -->
+    <style>
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 2rem;
+        background: var(--header-bg);
+        color: var(--text-color);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+        box-sizing: border-box;
+      }
 
-  header.hidden { transform: translateY(-100%); }
+      header.hidden {
+        transform: translateY(-100%);
+      }
 
-  header nav {
-    display: flex;
-    gap: 1.5rem;
-  }
+      header .header-left h1 {
+        margin: 0;
+        font-size: 1.8rem;
+      }
 
-  header nav a {
-    text-decoration: none;
-    color: #fff;
-    font-weight: 500;
-    transition: color 0.3s ease;
-  }
+      header .header-left h1 a {
+        text-decoration: none;
+        color: var(--primary-color);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
 
-  header nav a:hover {
-    color: #58a058;
-  }
+      header nav {
+        display: flex;
+        gap: 1.8rem;
+      }
 
-  header .header-left h1 a {
-    text-decoration: none;
-    color: #fff;
-  }
+      header nav a {
+        text-decoration: none;
+        color: var(--text-color);
+        font-weight: 500;
+        transition: all 0.2s ease;
+        position: relative;
+        font-size: 0.95rem;
+        letter-spacing: 0.3px;
+        padding: 0.5rem 0;
+      }
 
-  header .header-right {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
+      header nav a:hover {
+        color: var(--primary-color);
+      }
+      
+      /* Efecto de subrayado en hover de los links del nav */
+      header nav a::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: var(--primary-color);
+        transition: width 0.3s ease;
+      }
+      
+      header nav a:hover::after {
+        width: 100%;
+      }
 
-  header .header-right .btn-login {
-    background-color: #004d40;
-    color: #fff;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    text-decoration: none;
-    transition: background-color 0.3s;
-    font-weight: 500;
-    border: none;
-  }
+      header .header-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
 
-  header .header-right .btn-login:hover {
-    background-color: #58a058;
-  }
-  
-  /* Estilo para la foto de perfil */
-  .profile-img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-</style>
+      /* Botón de Login */
+      header .header-right .btn-login {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        border: none;
+        letter-spacing: 0.4px;
+        font-size: 0.9rem;
+      }
 
-<header>
-  <div class="header-left">
-    <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
-  </div>
-  <nav class="header-center">
-    <a href="{{ url_for('salud') }}">Salud</a>
-    <a href="{{ url_for('fitness') }}">Fitness</a>
-    <a href="{{ url_for('alimentacion') }}">Alimentación</a>
-    <a href="{{ url_for('precios') }}">Servicios</a>
-    <a href="{{ url_for('contacto') }}">Contacto</a>
-  </nav>
-  <div class="header-right">
-    {% if session.user %}
-      {% if session.user.foto %}
-        <!-- Removido el condicional para permitir que usuarios de Google también accedan -->
-        <img src="{{ session.user.foto }}"
-             alt="Foto de {{ session.user.nombre }}"
-             class="profile-img"
-             onclick="location.href='{{ url_for('configurar_foto') }}';"
-             style="cursor: pointer;" title="Configurar perfil">
-      {% else %}
-        <span>{{ session.user.nombre }}</span>
-        <button onclick="location.href='{{ url_for('configurar_foto') }}';">Subir foto de perfil</button>
-      {% endif %}
-    {% else %}
-      <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
-    {% endif %}
-  </div>
-</header>
+      header .header-right .btn-login:hover {
+        background-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      /* Estilo para usuario logueado - simplificado */
+      .header-user {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        position: relative;
+      }
+      
+      /* Estilo para la foto de perfil - círculo simple */
+      .profile-link {
+        display: block;
+        line-height: 0;
+      }
+      
+      .profile-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      
+      /* Botón de logout */
+      .logout-link {
+        color: var(--text-color);
+        font-size: 1.1rem;
+        line-height: 1;
+      }
+      
+      .logout-link:hover {
+        color: var(--primary-color);
+      }
+
+      /* Responsive para tablets */
+      @media (max-width: 992px) {
+        header {
+          padding: 0.7rem 1.5rem;
+        }
+        
+        header nav {
+          gap: 1.2rem;
+        }
+        
+        header .header-left h1 {
+          font-size: 1.6rem;
+        }
+        
+        .welcome-text {
+          font-size: 0.85rem;
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .profile-link, .profile-img {
+          /* Mantener dimensiones incluso en pantallas pequeñas */
+          width: 36px;  
+          height: 36px;
+        }
+        
+        .profile-img {
+          width: 32px;
+          height: 32px;
+        }
+      }
+
+      /* Responsive para móviles */
+      @media (max-width: 768px) {
+        header {
+          padding: 0.7rem 1rem;
+        }
+        
+        header .header-left h1 {
+          font-size: 1.4rem;
+        }
+        
+        header nav {
+          display: none;
+        }
+        
+        .welcome-text {
+          display: none;
+        }
+        
+        /* Aquí se podría añadir un botón de hamburguesa para mostrar el menú */
+        .mobile-menu-toggle {
+          display: block;
+          background: none;
+          border: none;
+          color: var(--text-color);
+          font-size: 1.5rem;
+          cursor: pointer;
+        }
+
+        .profile-link, .profile-img {
+          /* Asegurar tamaño correcto en móviles también */
+          width: 36px;
+          height: 36px;
+        }
+        
+        .profile-img {
+          width: 32px;
+          height: 32px;
+        }
+      }
+    </style>
+
+    <script>
+      // HEADER: Ocultar/mostrar en scroll con efecto suave
+      document.addEventListener('DOMContentLoaded', function() {
+        let lastScrollTop = 0;
+        const header = document.querySelector("header");
+        window.addEventListener("scroll", function() {
+          let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          
+          // Solo ocultamos el header cuando hayamos bajado un poco (más de 200px)
+          if (scrollTop > 200) {
+            if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight) {
+              header.classList.add("hidden");
+            } else {
+              header.classList.remove("hidden");
+            }
+          } else {
+            header.classList.remove("hidden");
+          }
+          
+          lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        });
+      });
+    </script>
+</body>
+</html>

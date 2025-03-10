@@ -1,45 +1,43 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="default">
 <head>
   <meta charset="UTF-8">
-  <title>Zona Alimentación</title>
+  <title>Alimentación - VytalGym</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- IMPORTANTE: Incluir el sistema de temas global -->
+  {% include 'partials/tema_global.html' %}
+  
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 
   <style>
-    /* ================= Estilos específicos de Alimentación ================= */
+    /* Estilos específicos con variables CSS */
     body {
-      margin: 0;
       font-family: 'Roboto', sans-serif;
-      background: linear-gradient(180deg, #001a33 0%, #002838 40%, #002f2f 100%);
-      color: #fff;
+      background: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-middle) 40%, var(--gradient-end) 100%);
+      color: var(--text-color);
       scroll-behavior: smooth;
+      padding-top: 80px; /* Espacio para el header fijo */
     }
     
     .titulo-seccion {
-      background-color: #001a33;
-      color: white;
+      background-color: var(--header-bg);
+      color: var(--text-color);
       padding: 1.5rem 2rem;
-      margin-top: 80px; /* Se aumentó de 60px a 100px */
+      margin-top: 0; /* Ajustado para trabajar con el padding-top del body */
       border-bottom: 1px solid rgba(255,255,255,0.1);
       margin-bottom: 40px;
     }
     
     .titulo-seccion h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    
-    .titulo-seccion p {
-      margin: 0.5rem 0 0 0;
-      color: #bbbbbb;
-      font-size: 1rem;
+      /* ...existing styles... */
     }
     
     .main-content {
-      padding: 0 40px 40px;
+      padding: 20px 40px;
       max-width: 1200px;
       margin: 0 auto;
     }
@@ -52,8 +50,8 @@
     }
     
     .macro-card {
-      background: white;
-      color: #333;
+      background: var(--card-bg);
+      color: var(--text-color);
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
@@ -61,13 +59,13 @@
     }
     
     .macro-card h3 {
-      color: #58a058;
+      color: var(--primary-color);
       margin-top: 0;
     }
     
     .recipes-section {
-      background: white;
-      color: #333;
+      background: var(--card-bg);
+      color: var(--text-color);
       border-radius: 8px;
       padding: 30px;
       margin-bottom: 30px;
@@ -75,7 +73,7 @@
     }
     
     .recipes-section h2 {
-      color: #58a058;
+      color: var(--primary-color);
       margin-top: 0;
     }
     
@@ -105,7 +103,7 @@
     
     .recipe-card h3 {
       margin: 0 0 10px 0;
-      color: #333;
+      color: var(--text-color);
     }
     
     .recipe-card p {
@@ -114,15 +112,15 @@
     }
     
     #google-calendar-container {
-      background: white;
-      color: #333;
+      background: var(--card-bg);
+      color: var(--text-color);
       border-radius: 8px;
       padding: 30px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     }
     
     #google-calendar-container h2 {
-      color: #58a058;
+      color: var(--primary-color);
       margin-top: 0;
     }
     
@@ -140,17 +138,31 @@
     }
     
     #events-list li strong {
-      color: #333;
+      color: var(--text-color);
     }
     
     #events-list li button {
-      background: #007bff;
-      color: white;
+      background: var(--secondary-color);
+      color: var(--text-color);
       border: none;
       padding: 10px 15px;
       border-radius: 4px;
       cursor: pointer;
       margin-top: 10px;
+    }
+    
+    button, .btn {
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    button:hover, .btn:hover {
+      background-color: var(--primary-color);
     }
     
     /* Responsive Styles */
@@ -171,49 +183,6 @@
       .recipe-card div {
         padding: 15px;
       }
-    }
-
-    /* Estilos para el calendario */
-    #calendar-container {
-      margin-top: 40px;
-      text-align: center;
-    }
-    #calendar-controls {
-      margin-bottom: 10px;
-    }
-    #calendar-controls button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin: 0 5px;
-      transition: transform 0.1s ease-in-out, background-color 0.2s ease;
-    }
-    #calendar-controls button:hover {
-      background-color: #005bb5;
-    }
-    #calendar-controls button:active {
-      transform: scale(0.95);
-    }
-    .calendar-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 0 auto;
-    }
-    .calendar-table th, .calendar-table td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      width: 14.28%;
-      text-align: center;
-    }
-    .other-month {
-      color: #aaa;
-    }
-    .event-day {
-      background-color: #58a058;
-      color: white;
     }
   </style>
 </head>
@@ -287,211 +256,62 @@
   </div>
 </div>
 
-<!-- Menú contextual oculto con estilo acorde a la página -->
+<!-- Menú contextual oculto -->
 <div id="context-menu" style="position: absolute; display: none; background: #001a33; color: #fff; border: 1px solid #005bb5; z-index:1000; border-radius: 4px;">
   <div id="cm-create" style="padding: 8px; cursor: pointer;">Crear Evento</div>
   <div id="cm-delete" style="padding: 8px; cursor: pointer;">Borrar Evento</div>
 </div>
 
 <script>
-// Usar el mes actual y variable global para conservar los eventos
-let currentDate = new Date();
-let loadedEvents = null; // <-- Variable para conservar los eventos
+function loadCalendarEvents() {
+    const eventsList = document.getElementById('events-list');
+    eventsList.innerHTML = '<li>Cargando eventos...</li>';
 
-function renderCalendar(date, events = []) {
-  const calendarDiv = document.getElementById('calendar');
-  calendarDiv.innerHTML = '';
-  
-  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const header = document.createElement('h2');
-  header.textContent = monthNames[date.getMonth()] + ' ' + date.getFullYear();
-  calendarDiv.appendChild(header);
-  
-  const table = document.createElement('table');
-  table.className = 'calendar-table';
-  
-  // Cabezera con días
-  const thead = document.createElement('thead');
-  const trHead = document.createElement('tr');
-  ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].forEach(day => {
-      const th = document.createElement('th');
-      th.textContent = day;
-      trHead.appendChild(th);
-  });
-  thead.appendChild(trHead);
-  table.appendChild(thead);
-  
-  const tbody = document.createElement('tbody');
-  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-  const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  
-  let row = document.createElement('tr');
-  // Insertar celdas en blanco hasta el primer día
-  for(let i = 0; i < firstDay.getDay(); i++){
-      const blankCell = document.createElement('td');
-      row.appendChild(blankCell);
-  }
-  
-  // Rellenar los días del mes
-  for(let day = 1; day <= lastDay.getDate(); day++){
-      if(row.children.length === 7){
-          tbody.appendChild(row);
-          row = document.createElement('tr');
-      }
-      const cell = document.createElement('td');
-      const cellDate = new Date(date.getFullYear(), date.getMonth(), day);
-      cell.textContent = day;
-      // Agregar atributo con fecha en formato ISO (yyyy-mm-dd)
-      cell.setAttribute('data-date', cellDate.toISOString().slice(0,10));
-      row.appendChild(cell);
-  }
-  // Completar la última fila con celdas vacías si es necesario
-  while(row.children.length < 7){
-      const blankCell = document.createElement('td');
-      row.appendChild(blankCell);
-  }
-  tbody.appendChild(row);
-  table.appendChild(tbody);
-  calendarDiv.appendChild(table);
-  
-  // Marcar eventos en el día correspondiente
-  events.forEach(ev => {
-      const evDate = new Date(ev.start).toISOString().slice(0,10);
-      const cell = calendarDiv.querySelector(`td[data-date="${evDate}"]`);
-      if(cell){
-          const evDiv = document.createElement('div');
-          evDiv.className = 'event-item';
-          evDiv.style.fontSize = '0.7rem';
-          evDiv.style.backgroundColor = '#58a058';
-          evDiv.style.color = '#fff';
-          evDiv.style.marginTop = '5px';
-          evDiv.textContent = ev.summary;
-          cell.appendChild(evDiv);
-      }
-  });
-  // Enlazar menú contextual a las celdas actualizadas
-  bindContextMenu();
-}
-
-function loadGoogleEvents() {
-  fetch('/api/calendar/events')
-    .then(response => response.json())
-    .then(data => {
-      if(data.status === "success" && data.events) {
-         loadedEvents = data.events; // Guardar eventos cargados
-      } else {
-         loadedEvents = [];
-      }
-      renderCalendar(currentDate, loadedEvents);
-    })
-    .catch(error => {
-      console.error("Error al cargar eventos:", error);
-      loadedEvents = [];
-      renderCalendar(currentDate, loadedEvents);
-    });
-}
-
-function fetchAndRenderCalendar() {
-  renderCalendar(currentDate, loadedEvents || []);
-}
-
-function bindContextMenu() {
-  document.querySelectorAll('td[data-date]').forEach(cell => {
-    cell.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-      const date = this.getAttribute('data-date');
-      const contextMenu = document.getElementById('context-menu');
-      contextMenu.style.top = e.pageY + 'px';
-      contextMenu.style.left = e.pageX + 'px';
-      contextMenu.style.display = 'block';
-      contextMenu.setAttribute('data-date', date);
-    });
-  });
-}
-
-// Ocultar el menú contextual al hacer click fuera
-document.addEventListener('click', () => {
-  document.getElementById('context-menu').style.display = 'none';
-});
-
-// Acción para crear un evento
-document.getElementById('cm-create').addEventListener('click', () => {
-  const contextMenu = document.getElementById('context-menu');
-  const dateStr = contextMenu.getAttribute('data-date');
-  const titulo = prompt('Ingresa el título del evento:');
-  if(titulo) {
-    // Se asume el evento a mediodía en la fecha seleccionada
-    const eventDate = new Date(dateStr + "T12:00:00");
-    const payload = {
-      titulo: titulo,
-      fecha: eventDate.toISOString().slice(0,19),
-      duracion: 60,
-      descripcion: ""
-    };
-    fetch('/api/calendar/event/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(response => response.json())
-    .then(data => {
-      if(data.status === "success") {
-        alert('Evento creado en Google Calendar');
-        loadGoogleEvents();
-      } else {
-        alert('Error creando evento: ' + data.message);
-      }
-    })
-    .catch(() => alert('Error en la petición'));
-  }
-});
-
-// Acción para borrar un evento (se borra el primero que coincida en la fecha)
-document.getElementById('cm-delete').addEventListener('click', () => {
-  const contextMenu = document.getElementById('context-menu');
-  const dateStr = contextMenu.getAttribute('data-date');
-  if(loadedEvents && loadedEvents.length > 0) {
-    const ev = loadedEvents.find(ev => new Date(ev.start).toISOString().slice(0,10) === dateStr);
-    if(ev && ev.id) {
-      if(confirm("¿Seguro que deseas borrar el evento: " + ev.summary + "?")) {
-        fetch('/api/calendar/event/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ event_id: ev.id })
+    fetch('/api/calendar/events')
+        .then(response => {
+            console.log('Respuesta del servidor:', response.status); // Debug
+            return response.json();
         })
-        .then(response => response.json())
         .then(data => {
-          if(data.status === "success") {
-            alert('Evento borrado en Google Calendar');
-            loadGoogleEvents();
-          } else {
-            alert('Error borrando evento: ' + data.message);
-          }
-        })
-        .catch(() => alert('Error en la petición'));
-      }
-    } else {
-      alert('No se encontró un evento para borrar en este día');
-    }
-  } else {
-    alert('No hay eventos cargados para este día');
-  }
-});
+            console.log('Datos recibidos:', data); // Debug
+            if (data.status === "error") {
+                eventsList.innerHTML = `<li>Error: ${data.message}</li>`;
+                // Si necesita autorización, mostrar botón
+                const authButton = document.createElement('button');
+                authButton.textContent = 'Conectar con Google Calendar';
+                authButton.onclick = () => window.location.href = '/autorizar';
+                eventsList.appendChild(authButton);
+                return;
+            }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('prev-month').addEventListener('click', () => {
-    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-    fetchAndRenderCalendar();
-  });
-  document.getElementById('next-month').addEventListener('click', () => {
-    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-    fetchAndRenderCalendar();
-  });
-  document.getElementById('load-events-google').addEventListener('click', () => {
-    loadGoogleEvents();
-  });
-  fetchAndRenderCalendar();
-});
+            eventsList.innerHTML = '';
+            if (data.events && data.events.length > 0) {
+                data.events.forEach(event => {
+                    const li = document.createElement('li');
+                    const date = new Date(event.start);
+                    li.innerHTML = `
+                        <strong>${event.summary}</strong><br>
+                        ${date.toLocaleString()}
+                    `;
+                    eventsList.appendChild(li);
+                });
+            } else {
+                eventsList.innerHTML = '<li>No hay eventos próximos</li>';
+            }
+        })
+        .catch(error => {
+            console.error('Error en la solicitud:', error); // Debug
+            eventsList.innerHTML = `
+                <li>Error al cargar los eventos</li>
+                <button onclick="window.location.href='/autorizar'">
+                    Conectar con Google Calendar
+                </button>
+            `;
+        });
+}
+
+// Llamar a la función cuando se carga la página
+document.addEventListener('DOMContentLoaded', loadCalendarEvents);
 </script>
 </body>
 </html>

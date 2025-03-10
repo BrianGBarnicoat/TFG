@@ -1,165 +1,144 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="default">
 <head>
   <meta charset="UTF-8">
+  <title>Salud - VytalGym</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Salud - VitalGym</title>
-  <!-- Enlace a la hoja de estilos general y a librerías externas -->
+  
+  <!-- IMPORTANTE: Incluir el sistema de temas global -->
+  {% include 'partials/tema_global.html' %}
+  
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Librería Chart.js para representar gráficamente datos de salud -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
-  <!-- Librería de Google API para autenticación y uso de Google Fit -->
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
   
   <style>
-    /* Estilos específicos para la página de Salud */
-    .salud-section {
-      padding: 2rem 0;
+    /* Asegurarse que los estilos usan variables CSS */
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--background-color);
+      color: var(--text-color);
+      padding-top: 80px; /* Espacio para el header fijo */
+      margin: 0;
+      transition: background-color 0.3s ease;
     }
-    .salud-section h2 {
-      text-align: center;
-      color: #58a058;
-      margin-bottom: 2rem;
-      font-size: 2.5rem;
-      text-transform: uppercase;
+    
+    .titulo-seccion {
+      background-color: var(--header-bg);
+      color: var(--text-color);
+      padding: 1.5rem 2rem;
+      margin-top: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 40px;
     }
-
-    .date-selector {
-      background: #fff;
-      color: #000;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      align-items: flex-start;
+    
+    .titulo-seccion h1 {
+      color: var(--primary-color);
     }
-    .date-selector label { font-weight: bold; }
-    .date-selector input[type="date"] {
-      padding: 6px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+    
+    .main-content {
+      padding: 20px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
-    .date-selector button {
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .date-selector button:hover { background-color: #0056b3; }
-
-    .stats-section {
-      background: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      color: #000;
-    }
-    .stats-section h2 {
-      margin-bottom: 20px;
-      text-align: center;
-      font-size: 2rem;
-      color: #58a058;
-    }
-    .stats-cards {
+    
+    .health-cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
+      margin-bottom: 40px;
     }
-    .stat-card {
-      border: 1px solid #eee;
-      border-radius: 6px;
-      padding: 15px;
-      text-align: center;
-      background: #f7f9fa;
-    }
-    .stat-card div { font-size: 2.2rem; margin-bottom: 5px; color: #007bff; }
-    .stat-card p { color: #666; font-size: 1rem; }
-
-    /* Gráfica y últimas secciones */
-    .chart-section, .info-section {
-      background: #fff;
-      border-radius: 8px;
+    
+    .health-card {
+      background: var(--card-color);
+      color: var(--text-color);
       padding: 20px;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      color: #000;
-    }
-    .chart-section h2, .info-section h2 {
+      border-radius: 8px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
       text-align: center;
-      font-size: 2rem;
-      margin-bottom: 15px;
-      color: #58a058;
     }
-    .info-section p {
-      text-align: justify;
-      line-height: 1.6;
+    
+    .health-card h3 {
+      color: var(--primary-color);
+      margin-top: 0;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 20px;
+      }
     }
   </style>
 </head>
+
 <body>
   {% include 'partials/header.html' %}
+
+  <div class="titulo-seccion">
+    <h1>Zona de Salud</h1>
+    <p>Monitoriza tu bienestar, registra tus avances y recibe consejos personalizados</p>
+  </div>
   
-  <main>
-    <!-- Sección Salud y Bienestar -->
-    <section class="salud-section">
-      <h2>Salud y Bienestar</h2>
-      <!-- Selector de Fecha para ver datos de salud -->
-      <div class="date-selector">
-        <label for="healthDate"><i class="fas fa-calendar"></i> Selecciona el día:</label>
-        <input type="date" id="healthDate" value="">
-        <button id="loadHealthData">Ver datos de salud</button>
+  <div class="main-content">
+    <div class="health-cards">
+      <div class="health-card">
+        <h3>Presión Arterial</h3>
+        <p>Supervisa los valores de tu presión arterial y mantén un registro de sus variaciones.</p>
       </div>
-      <!-- Indicadores de Salud -->
-      <section class="stats-section">
-        <h2>Indicadores de Salud</h2>
-        <div class="stats-cards">
-          <div class="stat-card">
-            <div id="stat-sleep">0</div>
-            <p>Sueño (horas)</p>
-          </div>
-          <div class="stat-card">
-            <div id="stat-oxygen">0%</div>
-            <p>Oxígeno en Sangre</p>
-          </div>
-          <div class="stat-card">
-            <div id="stat-blood-pressure">0/0</div>
-            <p>Tensión Arterial</p>
-          </div>
-          <div class="stat-card">
-            <div id="stat-heart-rate">0</div>
-            <p>Frecuencia Cardíaca (bpm)</p>
-          </div>
-        </div>
-      </section>
-      <!-- Gráfica de Tendencias de Salud -->
-      <section class="chart-section">
-        <h2>Tendencias de Salud</h2>
-        <canvas id="healthChart" width="800" height="400"></canvas>
-      </section>
-      <!-- Sección de Consejos y Programas -->
-      <section class="info-section">
-        <h2>Consejos para Mejorar tu Salud</h2>
-        <p>Explora nuestras recomendaciones y programas diseñados para optimizar tus hábitos de sueño, la oxigenación, la presión arterial y la frecuencia cardíaca. Sigue los consejos de nuestros expertos para llevar una vida más saludable y activa.</p>
-      </section>
-    </section>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 VitalGym. Diseñado con pasión y dedicación.</p>
-  </footer>
-
-  <!-- Script para gestionar la autenticación, obtener datos reales de Google Fit y renderizar la gráfica -->
+      
+      <div class="health-card">
+        <h3>Frecuencia Cardíaca</h3>
+        <p>Controla tu ritmo cardíaco en reposo y durante la actividad física.</p>
+      </div>
+      
+      <div class="health-card">
+        <h3>Nivel de Estrés</h3>
+        <p>Evalúa tu nivel de estrés y recibe técnicas de relajación adaptadas a ti.</p>
+      </div>
+    </div>
+    
+    <div id="health-charts" style="margin: 40px 0; background: var(--card-color); padding: 20px; border-radius: 8px;">
+      <h2 style="color: var(--primary-color);">Tus Estadísticas</h2>
+      <p>Las estadísticas de salud se mostrarán aquí cuando conectes tu dispositivo o introduces tus datos manualmente.</p>
+    </div>
+    
+    <div id="health-recommendations" style="margin: 40px 0; background: var(--card-color); padding: 20px; border-radius: 8px;">
+      <h2 style="color: var(--primary-color);">Recomendaciones personalizadas</h2>
+      <ul>
+        <li>Mantén una hidratación adecuada: al menos 2 litros de agua al día</li>
+        <li>Realiza pausas activas durante tu jornada laboral</li>
+        <li>Prioriza alimentos naturales y sin procesar</li>
+      </ul>
+    </div>
+  </div>
+  
   <script>
-    // Código JavaScript que ya estaba presente
-    # ...existing script content...
+    // Script para asegurar que el tema se aplique correctamente
+    document.addEventListener('DOMContentLoaded', function() {
+      // Aplicar el tema actual
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 
+                         localStorage.getItem('selected-theme') || 
+                         'default';
+      
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      
+      console.log("Tema aplicado en salud:", currentTheme);
+      
+      // Actualizar cuando cambie el tema
+      document.addEventListener('themeChanged', function(e) {
+        console.log("Tema cambiado en salud a:", e.detail.theme);
+        document.documentElement.setAttribute('data-theme', e.detail.theme);
+      });
+      
+      // Actualizar cuando cambien colores específicos
+      document.addEventListener('colorChanged', function(e) {
+        console.log(`Color cambiado en salud: ${e.detail.variable} = ${e.detail.value}`);
+      });
+    });
   </script>
+  
+  <!-- Script para cambios de tema en tiempo real -->
+  <script src="{{ url_for('static', filename='js/direct-theme.js') }}"></script>
 </body>
 </html>

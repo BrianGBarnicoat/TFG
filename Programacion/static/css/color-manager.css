@@ -1,0 +1,244 @@
+/* Estilos para el sistema avanzado de gestión de colores */
+
+/* Visualizador de historial de colores */
+.color-history {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.color-history-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.color-history-title h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+
+.color-history-items {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.color-history-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.color-history-item:hover {
+  transform: translateY(-3px);
+}
+
+.color-history-swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.color-history-label {
+  font-size: 0.75rem;
+  margin-top: 5px;
+  max-width: 60px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sistema de paletas de colores */
+.palette-manager {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.palette-manager-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.palette-manager-title h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+
+.palette-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.palette-item {
+  flex: 1;
+  min-width: 100px;
+  max-width: 150px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 10px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.palette-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.palette-item-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.palette-item-colors {
+  display: flex;
+  gap: 4px;
+}
+
+.palette-color {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.palette-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.palette-actions button {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+/* Selector de color avanzado */
+.advanced-color-picker {
+  position: relative;
+}
+
+.color-format-selector {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.color-format-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  color: var(--text-color);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.color-format-btn:hover,
+.color-format-btn.active {
+  background-color: var(--primary-color);
+}
+
+.color-value-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 5px 10px;
+}
+
+.color-value-display input {
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  flex: 1;
+  font-family: monospace;
+}
+
+.copy-button {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.copy-button:hover {
+  color: var(--accent-color);
+}
+
+/* Botones para las paletas */
+.btn-small {
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  border-radius: 4px;
+}
+
+/* Modal para guardar paleta */
+.color-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.color-modal-content {
+  background-color: var(--card-color);
+  border-radius: 8px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.color-modal-title {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+.color-modal-body {
+  margin: 15px 0;
+}
+
+.color-modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Diseño responsivo */
+@media (max-width: 768px) {
+  .color-history-items {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .palette-item {
+    min-width: calc(50% - 10px);
+  }
+}
