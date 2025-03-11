@@ -22,7 +22,7 @@ SCOPES = [
 ]
 
 # Corrección de ruta absoluta para encontrar los archivos de credenciales
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CREDENTIALS_PATH = os.path.join(BASE_DIR, 'claves seguras', 'google_oauth_credentials.json')
 
 print(f"BASE_DIR: {BASE_DIR}")
