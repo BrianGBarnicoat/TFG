@@ -52,3 +52,5 @@ def obtener_datos():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# No se ha encontrado código inactivo en este archivo.

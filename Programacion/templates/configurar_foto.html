@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <title>Panel de Configuración - VytalGym</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Incluir estilos globales y de configuración -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/configuracion_perfil.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/color-manager.css') }}">
   
   <style>
     :root {
@@ -68,12 +70,13 @@
       background: var(--background-color);
       color: var(--text-color);
       transition: all 0.3s ease;
+      padding-top: 80px; /* Espacio para el header fijo */
     }
     
     .config-container {
       width: 100%;
       max-width: 1000px;
-      margin: 100px auto 30px;
+      margin: 30px auto; /* Ajustado el margen superior */
       padding: 0;
       display: flex;
       flex-direction: column;
@@ -525,9 +528,200 @@
     input:checked + .toggle-slider:before {
       transform: translateX(26px);
     }
+
+    /* Estilos para el nuevo editor de colores */
+    .section-divider {
+      text-align: center;
+      margin: 30px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      line-height: 0;
+    }
+    
+    .section-divider span {
+      background-color: var(--card-color);
+      padding: 0 15px;
+      font-weight: bold;
+      color: var(--primary-color);
+      position: relative;
+      top: 10px;
+    }
+    
+    .color-editor {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .color-picker-group {
+      background-color: rgba(0, 0, 0, 0.15);
+      border-radius: 8px;
+      padding: 15px;
+      transition: transform 0.3s;
+    }
+    
+    .color-picker-group:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .color-picker-label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .color-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      margin-right: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .color-input {
+      width: 100%;
+      height: 40px;
+      border: none;
+      border-radius: 4px;
+      background-color: transparent;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    
+    .color-input::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    
+    .color-input::-webkit-color-swatch {
+      border: none;
+      border-radius: 4px;
+    }
+    
+    .color-preview {
+      height: 60px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .color-preview .btn-example {
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .header-preview {
+      color: var(--text-color);
+      font-weight: bold;
+    }
+    
+    .text-preview {
+      padding: 10px;
+      text-align: center;
+    }
+    
+    .color-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    
+    .color-actions button {
+      flex: 1;
+    }
+
+    /* Nuevos estilos para las notificaciones */
+    .notification {
+      position: fixed;
+      top: 100px;
+      right: 30px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      background: var(--card-color);
+      color: var(--text-color);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      transform: translateX(150%);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 400px;
+      width: 90%;
+      border-left: 4px solid transparent;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    .notification-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .notification-icon {
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      font-size: 1.2rem;
+    }
+    
+    .notification.success {
+      border-color: var(--success-color);
+    }
+    
+    .notification.success .notification-icon::before {
+      content: "\f00c";
+      color: var(--success-color);
+    }
+    
+    .notification.error {
+      border-color: var(--error-color);
+    }
+    
+    .notification.error .notification-icon::before {
+      content: "\f00d";
+      color: var(--error-color);
+    }
+    
+    .notification.warning {
+      border-color: var(--warning-color);
+    }
+    
+    .notification.warning .notification-icon::before {
+      content: "\f071";
+      color: var(--warning-color);
+    }
+    
+    .notification-close {
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      font-size: 1.2rem;
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin-left: 10px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    
+    .notification-close:hover {
+      opacity: 1;
+    }
   </style>
 </head>
-<body>
+<body class="light-mode">
   {% include 'partials/header.html' %}
   
   <div class="config-container">
@@ -611,25 +805,24 @@
       <!-- Pestaña: Apariencia -->
       <div class="tab-content" id="apariencia">
         <h2>Personalizar Tema</h2>
-        <p>Selecciona un tema para personalizar tu experiencia en VytalGym.</p>
+        <p>Selecciona un tema predefinido o personaliza los colores. Los cambios se aplicarán inmediatamente a todas las páginas.</p>
         
+        <!-- Temas predefinidos -->
         <div class="theme-options">
-          <div class="theme-card theme-default active" data-theme="default">
+          <div class="theme-card theme-default" data-theme="default">
             <div class="theme-preview">
               <div class="preview-header"></div>
               <div class="preview-body"></div>
             </div>
             <div class="theme-name">Por defecto</div>
           </div>
-          
-          <div class="theme-card theme-dark" data-theme="dark">
+          <div class="theme-card theme-dark">
             <div class="theme-preview">
               <div class="preview-header"></div>
               <div class="preview-body"></div>
             </div>
             <div class="theme-name">Oscuro</div>
           </div>
-          
           <div class="theme-card theme-light" data-theme="light">
             <div class="theme-preview">
               <div class="preview-header"></div>
@@ -637,7 +830,6 @@
             </div>
             <div class="theme-name">Claro</div>
           </div>
-          
           <div class="theme-card theme-blue" data-theme="blue">
             <div class="theme-preview">
               <div class="preview-header"></div>
@@ -645,7 +837,6 @@
             </div>
             <div class="theme-name">Azul</div>
           </div>
-          
           <div class="theme-card theme-purple" data-theme="purple">
             <div class="theme-preview">
               <div class="preview-header"></div>
@@ -655,25 +846,121 @@
           </div>
         </div>
         
-        <div class="preview-section">
-          <h3 class="preview-title">Vista previa:</h3>
-          <div class="site-preview">
-            <div class="site-preview-header">
-              <div style="color: var(--text-color); font-weight: bold;">VytalGym</div>
+        <!-- Separador visual -->
+        <div class="section-divider">
+          <span>Colores avanzados</span>
+        </div>
+        
+        <!-- Vista previa en tiempo real con iframe MOVIDO AQUÍ -->
+        <div class="preview-section" style="margin-top: 20px; margin-bottom: 30px;">
+          <div class="iframe-container" style="height: 350px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
+            <iframe id="preview-iframe" src="{{ url_for('principal') }}" 
+                    style="width: 100%; height: 100%; border: none;"
+                    title="Vista previa de la página principal con el tema aplicado">
+            </iframe>
+          </div>
+          
+          <div class="preview-controls" style="margin-top: 15px; text-align: center;">
+            <button class="btn btn-primary" id="refreshPreview">
+              <i class="fas fa-sync-alt"></i> Refrescar vista previa
+            </button>
+            <button class="btn btn-secondary" id="savePaletteBtn">
+              <i class="fas fa-save"></i> Guardar paleta actual
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenedor para historial de colores -->
+        <div id="colorHistoryContainer" class="history-container"></div>
+
+        <!-- Contenedor para paletas guardadas -->
+        <div class="palette-manager">
+          <div class="palette-manager-title">
+            <h3>Mis paletas de colores</h3>
+          </div>
+          <div class="palette-list">
+            <!-- Las paletas se cargarán dinámicamente -->
+          </div>
+        </div>
+        
+        <!-- Selectores de color -->
+        <div class="color-editor">
+          <!-- Color principal -->
+          <div class="color-picker-group">
+            <div class="color-picker-label">
+              <span class="color-dot" data-variable="--primary-color"></span>
+              <label for="primaryColorPicker">Color principal</label>
             </div>
-            <div class="site-preview-body">
-              <div class="site-preview-card">
-                <h3 style="color: var(--primary-color); margin-bottom: 10px;">Tarjeta de ejemplo</h3>
-                <p style="color: var(--text-color);">Así es como se verán las tarjetas con el tema seleccionado.</p>
-                <button class="btn btn-primary" style="margin-top: 10px; padding: 8px 15px; font-size: 14px;">Botón de ejemplo</button>
-              </div>
+            <input type="color" id="primaryColorPicker" class="color-input live-update">
+            <div class="color-preview" style="background-color: var(--primary-color)">
+              <button class="btn-example">Botón principal</button>
+            </div>
+          </div>
+          
+          <!-- Color secundario -->
+          <div class="color-picker-group">
+            <div class="color-picker-label">
+              <span class="color-dot" data-variable="--secondary-color"></span>
+              <label for="secondaryColorPicker">Color secundario</label>
+            </div>
+            <input type="color" id="secondaryColorPicker" class="color-input live-update">
+            <div class="color-preview" style="background-color: var(--secondary-color)">
+              <button class="btn-example">Botón secundario</button>
+            </div>
+          </div>
+          
+          <!-- Color de cabecera -->
+          <div class="color-picker-group">
+            <div class="color-picker-label">
+              <span class="color-dot" data-variable="--header-bg"></span>
+              <label for="headerBgPicker">Color de cabecera</label>
+            </div>
+            <input type="color" id="headerBgPicker" class="color-input live-update">
+            <div class="color-preview" style="background-color: var(--header-bg)">
+              <div class="preview-text">VytalGym</div>
+            </div>
+          </div>
+          
+          <!-- Color de texto -->
+          <div class="color-picker-group">
+            <div class="color-picker-label">
+              <span class="color-dot" data-variable="--text-color"></span>
+              <label for="textColorPicker">Color de texto</label>
+            </div>
+            <input type="color" id="textColorPicker" class="color-input live-update">
+            <div class="color-preview text-preview" style="background-color: var(--background-color)">
+              <p style="color: var(--text-color)">Texto de ejemplo</p>
+            </div>
+          </div>
+          
+          <!-- Color de fondo -->
+          <div class="color-picker-group">
+            <div class="color-picker-label">
+              <span class="color-dot" data-variable="--background-color"></span>
+              <label for="backgroundColorPicker">Color de fondo</label>
+            </div>
+            <input type="color" id="backgroundColorPicker" class="color-input live-update">
+            <div class="color-preview" style="background-color: var(--background-color)">
+              <p style="color: var(--text-color)">Fondo</p>
             </div>
           </div>
         </div>
         
-        <div class="btn-row">
-          <button class="btn btn-primary" id="saveTheme">Guardar Tema</button>
-          <button class="btn btn-secondary" id="resetTheme">Restaurar Por Defecto</button>
+        <!-- Botón para restablecer colores -->
+        <div class="color-actions">
+          <button class="btn btn-secondary" id="resetColorsBtn">
+            <i class="fas fa-undo"></i> Restablecer colores
+          </button>
+        </div>
+        
+        <!-- Botones de acción para guardar o restablecer tema -->
+        <div class="btn-row" style="margin-top: 40px;">
+          <button class="btn btn-primary" id="saveTheme">
+            <i class="fas fa-save"></i> Guardar tema
+          </button>
+          <button class="btn btn-secondary" id="resetTheme">
+            <i class="fas fa-trash"></i> Restablecer a predeterminado
+          </button>
         </div>
       </div>
       
@@ -725,9 +1012,11 @@
   
   <!-- Notificación -->
   <div class="notification" id="notification">
-    <i class="fas fa-check-circle"></i>
-    <span id="notificationText">Cambios guardados correctamente</span>
-    <span class="notification-close" onclick="hideNotification()">×</span>
+    <div class="notification-content">
+      <i class="notification-icon"></i>
+      <span id="notificationText"></span>
+    </div>
+    <button class="notification-close" onclick="hideNotification()">×</button>
   </div>
   
   <!-- Modal Confirmar Eliminación -->
@@ -870,19 +1159,27 @@
         const notification = document.getElementById('notification');
         const notificationText = document.getElementById('notificationText');
         
+        // Limpiar clases anteriores
         notification.className = 'notification';
+        
+        // Añadir clase según el tipo
         notification.classList.add(type);
+        
+        // Establecer el mensaje
         notificationText.textContent = message;
         
+        // Mostrar notificación
         notification.classList.add('show');
         
+        // Ocultar después de 5 segundos
         setTimeout(() => {
-          notification.classList.remove('show');
-        }, 3000);
+          hideNotification();
+        }, 5000);
       }
       
       function hideNotification() {
-        document.getElementById('notification').classList.remove('show');
+        const notification = document.getElementById('notification');
+        notification.classList.remove('show');
       }
       
       // Modal de confirmación para eliminar cuenta
@@ -928,7 +1225,393 @@
         
         showNotification('Todos los cambios guardados correctamente', 'success');
       });
+      
+      // Personalización Avanzada: Header y Botón
+      document.getElementById('saveCustomColors').addEventListener('click', function() {
+        const headerColor = document.getElementById('headerColorPicker').value;
+        const buttonColor = document.getElementById('buttonColorPicker').value;
+        // Guardarlos en localStorage
+        localStorage.setItem('customHeaderColor', headerColor);
+        localStorage.setItem('customButtonColor', buttonColor);
+        // Aplicarlos inline
+        document.documentElement.style.setProperty('--header-bg', headerColor);
+        document.documentElement.style.setProperty('--button-bg', buttonColor);
+        showNotification('Colores personalizados aplicados');
+      });
+      
+      // Al cargar, aplicar si existen
+      const savedHeader = localStorage.getItem('customHeaderColor');
+      const savedButton = localStorage.getItem('customButtonColor');
+      if (savedHeader) {
+        document.documentElement.style.setProperty('--header-bg', savedHeader);
+        document.getElementById('headerColorPicker').value = savedHeader;
+      }
+      if (savedButton) {
+        document.documentElement.style.setProperty('--button-bg', savedButton);
+        document.getElementById('buttonColorPicker').value = savedButton;
+      }
+
+      // Configuración inicial de los controles de color
+      const primaryColorPicker = document.getElementById('primaryColorPicker');
+      const secondaryColorPicker = document.getElementById('secondaryColorPicker');
+      const headerBgPicker = document.getElementById('headerBgPicker');
+      const textColorPicker = document.getElementById('textColorPicker');
+      const backgroundColorPicker = document.getElementById('backgroundColorPicker');
+      
+      // Cargar valores guardados o usar predeterminados
+      primaryColorPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#58a058';
+      secondaryColorPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim() || '#004d40';
+      headerBgPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--header-bg').trim() || '#000a14';
+      textColorPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#ffffff';
+      backgroundColorPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--background-color').trim() || '#001a33';
+      
+      // Actualizar en tiempo real al cambiar los colores
+      [primaryColorPicker, secondaryColorPicker, headerBgPicker, textColorPicker, backgroundColorPicker].forEach(picker => {
+        picker.addEventListener('input', updateColorsPreview);
+      });
+      
+      function updateColorsPreview() {
+        // Aplicar colores temporalmente para la vista previa
+        document.documentElement.style.setProperty('--primary-color', primaryColorPicker.value);
+        document.documentElement.style.setProperty('--secondary-color', secondaryColorPicker.value);
+        document.documentElement.style.setProperty('--header-bg', headerBgPicker.value);
+        document.documentElement.style.setProperty('--text-color', textColorPicker.value);
+        document.documentElement.style.setProperty('--background-color', backgroundColorPicker.value);
+        
+        // Actualizar también los dots de colores
+        document.querySelectorAll('.color-dot')[0].style.backgroundColor = primaryColorPicker.value;
+        document.querySelectorAll('.color-dot')[1].style.backgroundColor = secondaryColorPicker.value;
+        document.querySelectorAll('.color-dot')[2].style.backgroundColor = headerBgPicker.value;
+        document.querySelectorAll('.color-dot')[3].style.backgroundColor = textColorPicker.value;
+        document.querySelectorAll('.color-dot')[4].style.backgroundColor = backgroundColorPicker.value;
+      }
+      
+      // Aplicar colores cuando se hace clic en el botón
+      document.getElementById('applyColors').addEventListener('click', function() {
+        console.log("Aplicando colores personalizados...");
+      
+        // Verificar que el ColorManager está disponible
+        if (!window.ColorManager) {
+          console.error("Error: ColorManager no está disponible");
+          showNotification('Error al aplicar colores. Intenta recargar la página.', 'error');
+          return;
+        }
+        
+        // Crear un objeto con los valores de colores actuales
+        const colores = {
+          '--primary-color': primaryColorPicker.value,
+          '--secondary-color': secondaryColorPicker.value,
+          '--header-bg': headerBgPicker.value,
+          '--text-color': textColorPicker.value,
+          '--background-color': backgroundColorPicker.value
+        };
+        
+        // Aplicar los colores usando el ColorManager
+        const applied = window.ColorManager.applyColors(colores);
+        
+        if (applied > 0) {
+          showNotification(`¡Colores aplicados con éxito! Se aplicarán en todas las páginas.`, 'success');
+        } else {
+          showNotification('Error al aplicar los colores', 'error');
+        }
+      });
+      
+      // Restablecer colores personalizados
+      document.getElementById('resetColors').addEventListener('click', function() {
+        console.log("Restableciendo colores personalizados...");
+        
+        if (window.ColorManager) {
+          window.ColorManager.resetAllColors();
+          
+          // Re-sincronizar los inputs con los valores actuales
+          setTimeout(() => {
+            const style = getComputedStyle(document.documentElement);
+            primaryColorPicker.value = style.getPropertyValue('--primary-color').trim();
+            secondaryColorPicker.value = style.getPropertyValue('--secondary-color').trim();
+            headerBgPicker.value = style.getPropertyValue('--header-bg').trim();
+            textColorPicker.value = style.getPropertyValue('--text-color').trim();
+            backgroundColorPicker.value = style.getPropertyValue('--background-color').trim();
+            
+            // Actualizar también los dots de colores
+            const dots = document.querySelectorAll('.color-dot');
+            if (dots.length >= 5) {
+              dots[0].style.backgroundColor = primaryColorPicker.value;
+              dots[1].style.backgroundColor = secondaryColorPicker.value;
+              dots[2].style.backgroundColor = headerBgPicker.value;
+              dots[3].style.backgroundColor = textColorPicker.value;
+              dots[4].style.backgroundColor = backgroundColorPicker.value;
+            }
+          }, 100);
+          
+          showNotification('Colores restablecidos correctamente', 'info');
+        } else {
+          showNotification('Error al restablecer los colores', 'error');
+        }
+      });
+      
+      // Al cargar, aplicar colores personalizados si existen
+      const customPrimary = localStorage.getItem('customPrimaryColor');
+      const customSecondary = localStorage.getItem('customSecondaryColor');
+      const customHeader = localStorage.getItem('customHeaderColor');
+      const customText = localStorage.getItem('customTextColor');
+      const customBackground = localStorage.getItem('customBackgroundColor');
+      
+      if (customPrimary) document.documentElement.style.setProperty('--primary-color', customPrimary);
+      if (customSecondary) document.documentElement.style.setProperty('--secondary-color', customSecondary);
+      if (customHeader) document.documentElement.style.setProperty('--header-bg', customHeader);
+      if (customText) document.documentElement.style.setProperty('--text-color', customText);
+      if (customBackground) document.documentElement.style.setProperty('--background-color', customBackground);
+      
+      // Actualizar la vista previa inicial
+      setTimeout(updateColorsPreview, 100);
     });
+    
+    // Función para actualizar el iframe cuando cambian los colores
+    function refreshIframePreview() {
+      const iframe = document.getElementById('preview-iframe');
+      if (iframe) {
+        const currentSrc = iframe.src;
+        // Recargar iframe con un parámetro timestamp para evitar caché
+        iframe.src = currentSrc.split('?')[0] + '?t=' + new Date().getTime();
+      }
+    }
+    
+    // Configurar el botón para refrescar el iframe
+    document.getElementById('refreshPreview').addEventListener('click', refreshIframePreview);
+    
+    // Actualizar el iframe cuando cambie cualquier color
+    [primaryColorPicker, secondaryColorPicker, headerBgPicker, textColorPicker, backgroundColorPicker].forEach(picker => {
+      if (picker) {
+        picker.addEventListener('change', function() {
+          // Esperar un momento para que los cambios de CSS se apliquen
+          setTimeout(refreshIframePreview, 500);
+        });
+      }
+    });
+  </script>
+  <script src="{{ url_for('static', filename='js/simple-theme.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/color-manager.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/advanced-color-manager.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/color-history-visualizer.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/color-palette-manager.js') }}"></script>
+
+<!-- Script para gestionar selectores de color - Optimizado -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // ...existing code...
+    
+    // Función optimizada para manejar selectores de color
+    function setupColorPickers() {
+      const colorInputs = document.querySelectorAll('.color-input.live-update');
+      const colorManager = window.AdvancedColorManager;
+      
+      if (!colorManager) {
+        console.error("Sistema de color no disponible");
+        return false;
+      }
+      
+      // Cargar los valores iniciales una sola vez
+      const primaryColorPicker = document.getElementById('primaryColorPicker');
+      const secondaryColorPicker = document.getElementById('secondaryColorPicker');
+      const headerBgPicker = document.getElementById('headerBgPicker');
+      const textColorPicker = document.getElementById('textColorPicker');
+      const backgroundColorPicker = document.getElementById('backgroundColorPicker');
+      
+      // Mapa de selectores para acceso más fácil
+      const colorPickers = {
+        '--primary-color': primaryColorPicker,
+        '--secondary-color': secondaryColorPicker,
+        '--header-bg': headerBgPicker,
+        '--text-color': textColorPicker,
+        '--background-color': backgroundColorPicker
+      };
+      
+      // Inicializar todos los selectores de color
+      for (const [variable, picker] of Object.entries(colorPickers)) {
+        if (picker) {
+          const color = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+          picker.value = color || '';
+          
+          // Actualizar el punto de color correspondiente
+          const colorDot = picker.parentElement.querySelector('.color-dot');
+          if (colorDot) colorDot.style.backgroundColor = color;
+          
+          // Manejar cambios en tiempo real
+          picker.addEventListener('input', function() {
+            const varName = this.parentElement.querySelector('.color-picker-label .color-dot').getAttribute('data-variable');
+            document.documentElement.style.setProperty(varName, this.value);
+            
+            // Actualizar punto de color
+            const dot = this.parentElement.querySelector('.color-dot');
+            if (dot) dot.style.backgroundColor = this.value;
+          });
+          
+          // Guardar al terminar de seleccionar
+          picker.addEventListener('change', function() {
+            const varName = this.parentElement.querySelector('.color-picker-label .color-dot').getAttribute('data-variable');
+            colorManager.applyColor(varName, this.value);
+            setTimeout(refreshIframePreview, 300);
+          });
+        }
+      }
+      
+      // Configurar botón de reseteo
+      const resetBtn = document.getElementById('resetColorsBtn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+          colorManager.resetAllColors();
+          
+          // Actualizar valores de selectores de color
+          for (const [variable, picker] of Object.entries(colorPickers)) {
+            if (picker) {
+              picker.value = colorManager.getColor(variable);
+              const dot = picker.parentElement.querySelector('.color-dot');
+              if (dot) dot.style.backgroundColor = picker.value;
+            }
+          }
+          
+          setTimeout(refreshIframePreview, 300);
+        });
+      }
+      
+      // Añadir botón de deshacer
+      addUndoButton(colorPickers, colorManager);
+    }
+    
+    // Función para añadir botón de deshacer
+    function addUndoButton(colorPickers, colorManager) {
+      const colorActions = document.querySelector('.color-actions');
+      if (!colorActions || document.getElementById('undoColorBtn')) return;
+      
+      const undoBtn = document.createElement('button');
+      undoBtn.id = 'undoColorBtn';
+      undoBtn.className = 'btn btn-secondary';
+      undoBtn.innerHTML = '<i class="fas fa-undo-alt"></i> Deshacer';
+      
+      undoBtn.addEventListener('click', function() {
+        if (colorManager.undoLastChange()) {
+          // Actualizar valores de selectores
+          for (const [variable, picker] of Object.entries(colorPickers)) {
+            if (picker) {
+              picker.value = colorManager.getColor(variable);
+              const dot = picker.parentElement.querySelector('.color-dot');
+              if (dot) dot.style.backgroundColor = picker.value;
+            }
+          }
+          
+          setTimeout(refreshIframePreview, 300);
+        }
+      });
+      
+      colorActions.appendChild(undoBtn);
+    }
+    
+    // Función para actualizar el iframe (simplificada)
+    function refreshIframePreview() {
+      const iframe = document.getElementById('preview-iframe');
+      if (iframe) {
+        iframe.src = iframe.src.split('?')[0] + '?t=' + Date.now();
+      }
+    }
+    
+    // Iniciar gestión de colores al cargar
+    setupColorPickers();
+    
+    // Configurar botón de refrescar iframe
+    const refreshBtn = document.getElementById('refreshPreview');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', refreshIframePreview);
+    }
+    
+    // Función de notificación
+    window.showNotification = function(message, type = 'info') {
+      const notification = document.getElementById('notification');
+      const notificationText = document.getElementById('notificationText');
+      
+      if (notification && notificationText) {
+        notification.className = 'notification ' + type;
+        notificationText.textContent = message;
+        notification.classList.add('show');
+        
+        setTimeout(() => notification.classList.remove('show'), 5000);
+      }
+    };
+    
+    window.hideNotification = function() {
+      const notification = document.getElementById('notification');
+      if (notification) notification.classList.remove('show');
+    };
+  });
+</script>
+
+  <script>
+  // Función para probar la conexión con Firebase
+  function testFirebaseConnection() {
+    // Verificar si Firebase está disponible
+    if (typeof firebase === 'undefined') {
+      showNotification('Firebase no está disponible', 'error');
+      return;
+    }
+    
+    // Probar conexión a Realtime Database
+    try {
+      const testRef = firebase.database().ref('.info/connected');
+      testRef.on('value', (snap) => {
+        if (snap.val() === true) {
+          console.log('Conectado a Firebase Realtime Database');
+          showNotification('Conexión a Firebase establecida correctamente', 'success');
+          
+          // Si es un usuario autenticado, intentar una escritura de prueba
+          if (document.body.classList.contains('user-logged-in')) {
+            const userEmail = document.querySelector('meta[name="user-email"]')?.content;
+            if (userEmail) {
+              const userKey = userEmail.replace('.', '_');
+              const testPath = `usuarios/${userKey}/test_connection`;
+              firebase.database().ref(testPath).set({
+                timestamp: Date.now(),
+                message: 'Test de conexión'
+              })
+              .then(() => {
+                console.log('Prueba de escritura exitosa');
+                showNotification('Prueba de escritura en Firebase exitosa', 'success');
+              })
+              .catch(error => {
+                console.error('Error en prueba de escritura:', error);
+                showNotification(`Error en prueba de escritura: ${error.message}`, 'error');
+              });
+            }
+          }
+        } else {
+          console.log('Desconectado de Firebase');
+          showNotification('No se pudo conectar a Firebase', 'error');
+        }
+      });
+    } catch (error) {
+      console.error('Error al verificar conexión:', error);
+      showNotification(`Error al verificar conexión: ${error.message}`, 'error');
+    }
+  }
+  
+  // Añadir botón de diagnóstico en la página de configuración
+  document.addEventListener('DOMContentLoaded', function() {
+    if (document.querySelector('.config-header')) {
+      const configHeader = document.querySelector('.config-header');
+      
+      const diagButton = document.createElement('button');
+      diagButton.className = 'btn btn-secondary';
+      diagButton.innerHTML = '<i class="fas fa-stethoscope"></i> Diagnóstico Firebase';
+      diagButton.style.marginRight = '10px';
+      diagButton.onclick = testFirebaseConnection;
+      
+      // Insertar antes del botón existente
+      const saveButton = configHeader.querySelector('button');
+      if (saveButton) {
+        configHeader.insertBefore(diagButton, saveButton);
+      } else {
+        configHeader.appendChild(diagButton);
+      }
+    }
+  });
   </script>
 </body>
 </html>
