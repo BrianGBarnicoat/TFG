@@ -38,6 +38,22 @@ def agregar_evento():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
+def borrar_evento():
+    creds = get_credentials()
+    if not creds:
+        return jsonify({"status": "error", "message": "No autorizado"})
+    
+    try:
+        service = build('calendar', 'v3', credentials=creds)
+        datos = request.json
+        event_id = datos.get('event_id')
+        if not event_id:
+            return jsonify({"status": "error", "message": "Falta event_id"})
+        service.events().delete(calendarId='primary', eventId=event_id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
 def get_calendar_events():
     creds = get_credentials()
     if not creds:
@@ -57,7 +73,11 @@ def get_calendar_events():
         for event in events:
             summary = event.get('summary', 'Sin título')
             start = event['start'].get('dateTime', event['start'].get('date'))
-            events_transformed.append({'summary': summary, 'start': start})
+            events_transformed.append({
+                'summary': summary,
+                'start': start,
+                'id': event.get('id')
+            })
         return {"status": "success", "events": events_transformed}
     except Exception as e:
         return {"status": "error", "message": str(e)}
