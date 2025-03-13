@@ -83,22 +83,9 @@ def get_calendar_events():
             now = datetime.utcnow()
             year = now.year
 
-        month_param = request.args.get("month")
-        if month_param == "all":
-            first_day = datetime(year, 1, 1)
-            next_month = datetime(year+1, 1, 1)
-        else:
-            # Si no se pasa "all", se asume que se envia un mes numérico
-            if month_param:
-                month = int(month_param)
-            else:
-                now = datetime.utcnow()
-                month = now.month
-            first_day = datetime(year, month, 1)
-            if month == 12:
-                next_month = datetime(year+1, 1, 1)
-            else:
-                next_month = datetime(year, month+1, 1)
+        # Siempre mostrar eventos desde el 1 de enero hasta el 31 de diciembre del año actual
+        first_day = datetime(year, 1, 1)
+        next_month = datetime(year+1, 1, 1)
 
         timeMin = first_day.isoformat() + 'Z'
         timeMax = next_month.isoformat() + 'Z'
