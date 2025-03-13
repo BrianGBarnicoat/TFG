@@ -320,6 +320,7 @@
       <button id="prev-month">&laquo; Anterior</button>
       <button id="next-month">Siguiente &raquo;</button>
       <button id="load-events-google">Mostrar eventos Google</button>
+      <!-- Se eliminaron los botones de "Crear Evento" y "Borrar Evento" -->
     </div>
     <div id="calendar">
       <!-- Se renderizará el calendario aquí -->
@@ -390,37 +391,49 @@ function renderCalendar() {
     const calendar = document.getElementById('calendar');
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
-    // Definir nombres de los meses
-    const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-    // Actualizar el título del calendario
-    document.getElementById('calendar-title').textContent = monthNames[currentMonth] + ' ' + currentYear;
-    
-    const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+    const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                        "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    document.getElementById('calendar-title').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+    // Suponiendo que la semana comienza en lunes:
+    // Ajustamos: lunes=0 ... domingo=6
+    const firstDayObj = new Date(currentYear, currentMonth, 1);
+    const adjustedIndex = (firstDayObj.getDay() + 6) % 7; // transforma domingo (0) en 6 y lunes (1) en 0, etc.
     calendar.innerHTML = '';
-    // Añadir cabecera de días
+
+    // Cabecera de días lunes a domingo
+    const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
     daysOfWeek.forEach(day => {
-        const headerCell = document.createElement('div');
-        headerCell.className = 'calendar-header';
-        headerCell.textContent = day;
-        calendar.appendChild(headerCell);
+      const headerCell = document.createElement('div');
+      headerCell.className = 'calendar-header';
+      headerCell.textContent = day;
+      calendar.appendChild(headerCell);
     });
-    // Primer día del mes
-    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    // Celdas vacías antes del primer día
-    for (let i = 0; i < firstDay; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'calendar-day';
-        calendar.appendChild(emptyCell);
+
+    // Insertar celdas vacías para completar la primera semana (sin días del mes anterior)
+    for (let i = 0; i < adjustedIndex; i++){
+         const emptyCell = document.createElement('div');
+         emptyCell.className = 'calendar-day';
+         calendar.appendChild(emptyCell);
     }
-    // Celdas con los días del mes
+
+    // Celdas con los días del mes actual
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     for (let day = 1; day <= daysInMonth; day++) {
-        const dayCell = document.createElement('div');
-        dayCell.className = 'calendar-day';
-        dayCell.setAttribute("data-day", day);
-        // Estructura: número en la parte superior y contenedor para eventos debajo
-        dayCell.innerHTML = `<div class="day-number" style="font-size:0.8rem;">${day}</div><div class="day-events"></div>`;
-        calendar.appendChild(dayCell);
+         const dayCell = document.createElement('div');
+         dayCell.className = 'calendar-day';
+         dayCell.setAttribute("data-day", day);
+         dayCell.innerHTML = `<div class="day-number" style="font-size:0.8rem;">${day}</div><div class="day-events"></div>`;
+         calendar.appendChild(dayCell);
+    }
+    
+    // Rellenar con celdas vacías para completar la cuadrícula (días del siguiente mes)
+    const totalCells = adjustedIndex + daysInMonth;
+    const remaining = (7 - (totalCells % 7)) % 7;
+    for (let i = 0; i < remaining; i++){
+         const emptyCell = document.createElement('div');
+         emptyCell.className = 'calendar-day';
+         calendar.appendChild(emptyCell);
     }
     updateCalendarEvents();
 }
@@ -441,12 +454,18 @@ function updateCalendarEvents() {
                 eventDiv.className = 'calendar-event';
                 eventDiv.textContent = event.summary;
                 eventDiv.style.fontSize = '0.7rem';
-                // Quitar el fondo amarillo, usar fondo transparente
                 eventDiv.style.background = 'transparent';
+                // Si el evento está completado, aplicar tachado
+                if (event.completed) {
+                    eventDiv.style.textDecoration = "line-through";
+                }
+                eventDiv.setAttribute("data-event-id", event.id);
                 eventsContainer.appendChild(eventDiv);
             }
         }
     });
+    attachDayContextMenuHandlers();
+    attachEventContextMenuHandlers();
 }
 
 // Nueva función para cargar eventos de Google Calendar en el calendario
@@ -468,22 +487,251 @@ function loadGoogleCalendarEvents() {
         });
 }
 
+// Al cargarse la página, se muestra la vista mensual por defecto
+document.addEventListener('DOMContentLoaded', function(){
+    renderCalendar();
+    loadGoogleCalendarEvents();
+});
+
+// Listener para cambiar al mes anterior
 document.getElementById('prev-month').addEventListener('click', function() {
     currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
     renderCalendar();
 });
+// Listener para cambiar al mes siguiente
 document.getElementById('next-month').addEventListener('click', function() {
     currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
     renderCalendar();
 });
+// Listener para recargar los eventos del mes actual sin alterar la vista
 document.getElementById('load-events-google').addEventListener('click', function(){
     loadGoogleCalendarEvents();
-    renderCalendar();
 });
 
+// Se agrega funcionalidad para menú contextual dinámico
+
+let contextMenu = document.getElementById("context-menu");
+let selectedCell = null;         // Para almacenar la celda (día) seleccionada
+let selectedEventElement = null; // Para almacenar el elemento de evento seleccionado
+
+function showContextMenu(options, x, y) {
+    // Se limpia el menú y se agregan las opciones recibidas
+    contextMenu.innerHTML = "";
+    options.forEach(option => {
+        const div = document.createElement("div");
+        div.style.padding = "8px";
+        div.style.cursor = "pointer";
+        div.textContent = option.label;
+        div.addEventListener("click", function(e) {
+            e.stopPropagation();
+            contextMenu.style.display = "none";
+            option.action();
+        });
+        contextMenu.appendChild(div);
+    });
+    contextMenu.style.left = x + "px";
+    contextMenu.style.top = y + "px";
+    contextMenu.style.display = "block";
+}
+
+function attachDayContextMenuHandlers() {
+    document.querySelectorAll('.calendar-day[data-day]').forEach(cell => {
+        cell.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            selectedCell = cell;
+            let day = cell.getAttribute("data-day");
+            showContextMenu([
+                { label: "Crear Evento", action: () => { createEventForDay(day); } },
+                { label: "Borrar Evento", action: () => { deleteEventForDay(day); } }
+            ], e.pageX, e.pageY);
+        });
+    });
+}
+
+function attachEventContextMenuHandlers() {
+    document.querySelectorAll('.calendar-event').forEach(eventElem => {
+        eventElem.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            selectedEventElement = eventElem;
+            let eventId = eventElem.getAttribute("data-event-id");
+            let summary = eventElem.textContent;
+            showContextMenu([
+                { label: "Eliminar Evento", action: () => { deleteEventByName(summary); } },
+                { label: "Modificar Evento", action: () => { modifyEvent(eventId, summary); } }
+            ], e.pageX, e.pageY);
+        });
+    });
+}
+
+// Se modifican funciones de actualización para asignar los handlers del menú
+function updateCalendarEvents() {
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    // ...existing code to clear containers...
+    document.querySelectorAll('.day-events').forEach(container => container.innerHTML = '');
+    googleEventsData.forEach(event => {
+        const eventDate = new Date(event.start);
+        if (eventDate.getFullYear() === currentYear && eventDate.getMonth() === currentMonth) {
+            const day = eventDate.getDate();
+            const cell = document.querySelector('.calendar-day[data-day="' + day + '"]');
+            if (cell) {
+                const eventsContainer = cell.querySelector('.day-events');
+                const eventDiv = document.createElement('div');
+                eventDiv.className = 'calendar-event';
+                eventDiv.textContent = event.summary;
+                eventDiv.style.fontSize = '0.7rem';
+                eventDiv.style.background = 'transparent';
+                if (event.completed) {
+                    eventDiv.style.textDecoration = "line-through";
+                }
+                eventDiv.setAttribute("data-event-id", event.id);
+                eventsContainer.appendChild(eventDiv);
+            }
+        }
+    });
+    attachDayContextMenuHandlers();
+    attachEventContextMenuHandlers();
+}
+
+function createEventForDay(day) {
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2, '0')}-${String(day).padStart(2, '0')}T09:00:00`;
+    const titulo = prompt("Ingresa el título del evento:", "Evento");
+    if (!titulo) return alert("El título es obligatorio");
+    const duracion = prompt("Ingresa la duración en minutos:", "60");
+    const descripcion = prompt("Ingresa una descripción (opcional):", "");
+    
+    fetch("/api/calendar/event", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            titulo: titulo,
+            fecha: dateStr,
+            duracion: duracion,
+            descripcion: descripcion
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "success"){
+            alert("Evento creado en Google Calendar");
+            loadGoogleCalendarEvents();
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error al crear evento:", error);
+        alert("Error al crear el evento.");
+    });
+}
+
+function deleteEventForDay(day) {
+    const eventName = prompt("Ingresa el nombre del evento a borrar en este día:");
+    if(!eventName) return alert("El nombre del evento es obligatorio");
+    fetch("/api/calendar/event", {
+        method: "DELETE",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ event_name: eventName })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "success"){
+            alert("Evento borrado en Google Calendar");
+            loadGoogleCalendarEvents();
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error al borrar evento:", error);
+        alert("Error al borrar el evento.");
+    });
+}
+
+function deleteEventByName(eventName) {
+    if (!eventName) return alert("El nombre del evento es obligatorio");
+    fetch("/api/calendar/event", {
+        method: "DELETE",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ event_name: eventName })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "success"){
+            alert("Evento eliminado");
+            loadGoogleCalendarEvents();
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error al eliminar evento:", error);
+        alert("Error al eliminar el evento.");
+    });
+}
+
+function modifyEvent(eventId, currentSummary) {
+    const newTitle = prompt("Ingresa el nuevo título para el evento:", currentSummary);
+    if(!newTitle) return alert("El título es obligatorio");
+    // Para modificar, se elimina el evento existente y se crea uno nuevo.
+    fetch("/api/calendar/event", {
+        method: "DELETE",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ event_name: currentSummary })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "success"){
+            const fechaInput = prompt("Ingresa la nueva fecha del evento (YYYY-MM-DD):", new Date().toISOString().slice(0,10));
+            if (!fechaInput) return alert("La fecha es obligatoria");
+            const dateStr = `${fechaInput}T09:00:00`;
+            const duracion = prompt("Ingresa la duración en minutos:", "60");
+            const descripcion = prompt("Ingresa una descripción (opcional):", "");
+            
+            fetch("/api/calendar/event", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    titulo: newTitle,
+                    fecha: dateStr,
+                    duracion: duracion,
+                    descripcion: descripcion
+                })
+            })
+            .then(resp => resp.json())
+            .then(result => {
+                if(result.status === "success"){
+                    alert("Evento modificado exitosamente");
+                    loadGoogleCalendarEvents();
+                } else {
+                    alert("Error al crear evento modificado: " + result.message);
+                }
+            })
+            .catch(err => {
+                console.error("Error al crear evento modificado:", err);
+                alert("Error al modificar el evento.");
+            });
+        } else {
+            alert("Error al eliminar evento existente: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error al eliminar evento para modificación:", error);
+        alert("Error al modificar el evento.");
+    });
+}
+
+// Se cierra el menú contextual al hacer click fuera
+document.addEventListener("click", function(){
+    contextMenu.style.display = "none";
+});
+
+// Al cargarse la página, el calendario se renderiza y se cargan los eventos de Google Calendar automáticamente
 document.addEventListener('DOMContentLoaded', function(){
-    loadCalendarEvents();
     renderCalendar();
+    loadGoogleCalendarEvents();
 });
 </script>
 </body>

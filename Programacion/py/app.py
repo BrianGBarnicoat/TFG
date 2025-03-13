@@ -17,7 +17,7 @@ import functools
 
 # Importar módulos auxiliares (estos archivos pueden mantenerse separados)
 from auth import autorizar as google_autorizar, oauth2callback
-from calendar_api import agregar_evento, get_calendar_events
+from calendar_api import agregar_evento, get_calendar_events, borrar_evento
 from fitness import get_fitness_data, get_sleep_data
 
 # --------------------------------------------------------------------
@@ -27,7 +27,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "firebase_admin_credentials.json")
 
 # Configuración de Firebase actualizada con las nuevas URLs
-FIREBASE_DB_URL = 'https://tfgpb-448609-default-rtdb.firebaseio.com'
+FIREBASE_DB_URL = 'https://tfgpb-4  48609-default-rtdb.firebaseio.com'
 FIREBASE_STORAGE_BUCKET = 'tfgpb-448609.firebasestorage.app'
 
 if not os.path.exists(CREDENTIALS_PATH):
@@ -458,6 +458,16 @@ def update_user():
 def api_calendar_events():
     events = get_calendar_events()
     return jsonify(events)
+
+# Nuevo endpoint para crear un evento en Google Calendar
+@app.route('/api/calendar/event', methods=['POST'])
+def api_create_event():
+    return agregar_evento()
+
+# Nuevo endpoint para borrar un evento en Google Calendar
+@app.route('/api/calendar/event', methods=['DELETE'])
+def api_delete_event():
+    return borrar_evento()
 
 # Cambiar contraseña
 @app.route('/cambiar_password', methods=['GET', 'POST'])

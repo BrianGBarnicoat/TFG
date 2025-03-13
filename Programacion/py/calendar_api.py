@@ -3,7 +3,6 @@ from flask import request, jsonify
 from datetime import datetime, timedelta
 from auth import get_credentials
 
-
 def create_calendar_event(service, title, start_time, duration=60, description=""):
     event = {
         'summary': title,
@@ -24,7 +23,6 @@ def agregar_evento():
     creds = get_credentials()
     if not creds:
         return jsonify({"status": "error", "message": "No autorizado"})
-    
     try:
         service = build('calendar', 'v3', credentials=creds)
         datos = request.json
@@ -33,7 +31,6 @@ def agregar_evento():
         duracion = int(datos.get('duracion', 60))
         descripcion = datos.get('descripcion', '')
         enlace = create_calendar_event(service, titulo, fecha, duracion, descripcion)
-        
         return jsonify({"status": "success", "evento": enlace})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
@@ -42,14 +39,31 @@ def borrar_evento():
     creds = get_credentials()
     if not creds:
         return jsonify({"status": "error", "message": "No autorizado"})
-    
     try:
         service = build('calendar', 'v3', credentials=creds)
         datos = request.json
-        event_id = datos.get('event_id')
-        if not event_id:
-            return jsonify({"status": "error", "message": "Falta event_id"})
-        service.events().delete(calendarId='primary', eventId=event_id).execute()
+        
+        # Se espera que solo se envíe "event_name"
+        event_name = datos.get('event_name')
+        if not event_name:
+            return jsonify({"status": "error", "message": "Falta event_name"})
+        
+        events_result = service.events().list(
+            calendarId='primary',
+            q=event_name,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        events = events_result.get('items', [])
+        found_event = None
+        for event in events:
+            if event.get('summary', '').strip().lower() == event_name.strip().lower():
+                found_event = event
+                break
+        if not found_event:
+            return jsonify({"status": "error", "message": "Evento no encontrado"})
+        
+        service.events().delete(calendarId='primary', eventId=found_event.get('id')).execute()
         return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
@@ -60,23 +74,49 @@ def get_calendar_events():
         return {"status": "error", "message": "No autorizado"}
     try:
         service = build('calendar', 'v3', credentials=creds)
-        now = datetime.utcnow().isoformat() + 'Z'
+        from flask import request  # ...existing code...
+        # Tomar año de la query o de la fecha actual
+        year = request.args.get("year")
+        if year:
+            year = int(year)
+        else:
+            now = datetime.utcnow()
+            year = now.year
+
+        # Siempre mostrar eventos desde el 1 de enero hasta el 31 de diciembre del año actual
+        first_day = datetime(year, 1, 1)
+        next_month = datetime(year+1, 1, 1)
+
+        timeMin = first_day.isoformat() + 'Z'
+        timeMax = next_month.isoformat() + 'Z'
         events_result = service.events().list(
             calendarId='primary',
-            timeMin=now,
-            maxResults=10,
+            timeMin=timeMin,
+            timeMax=timeMax,
             singleEvents=True,
             orderBy='startTime'
         ).execute()
         events = events_result.get('items', [])
         events_transformed = []
+        now_ts = datetime.utcnow()
         for event in events:
             summary = event.get('summary', 'Sin título')
             start = event['start'].get('dateTime', event['start'].get('date'))
+            # Procesar fecha de finalización para determinar si completado
+            completed = False
+            if event.get('end'):
+                end = event['end'].get('dateTime', event['end'].get('date'))
+                try:
+                    event_end = datetime.fromisoformat(end.replace("Z", "+00:00"))
+                    if event_end < now_ts:
+                        completed = True
+                except Exception:
+                    pass
             events_transformed.append({
                 'summary': summary,
                 'start': start,
-                'id': event.get('id')
+                'id': event.get('id'),
+                'completed': completed
             })
         return {"status": "success", "events": events_transformed}
     except Exception as e:
