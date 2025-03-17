@@ -3,21 +3,28 @@ from flask import request, jsonify
 from datetime import datetime, timedelta
 from auth import get_credentials
 
-def create_calendar_event(service, title, start_time, duration=60, description=""):
+def create_calendar_event(service, title, start_time, end_time, description=""):
     event = {
         'summary': title,
         'description': description,
         'start': {
             'dateTime': start_time.isoformat(),
-            'timeZone': 'UTC',
+            'timeZone': 'UTC',  # Se añade la zona horaria
         },
         'end': {
-            'dateTime': (start_time + timedelta(minutes=duration)).isoformat(),
-            'timeZone': 'UTC',
+            'dateTime': end_time.isoformat(),
+            'timeZone': 'UTC',  # Se añade la zona horaria
         },
     }
     event = service.events().insert(calendarId='primary', body=event).execute()
     return event.get('htmlLink')
+
+def dst_start(year):
+    # Último domingo de marzo para España
+    d = datetime(year, 3, 31)
+    while d.weekday() != 6:  # Sunday
+        d -= timedelta(days=1)
+    return d
 
 def agregar_evento():
     creds = get_credentials()
@@ -27,10 +34,25 @@ def agregar_evento():
         service = build('calendar', 'v3', credentials=creds)
         datos = request.json
         titulo = datos.get('titulo', 'Evento sin título')
-        fecha = datetime.strptime(datos.get('fecha'), '%Y-%m-%dT%H:%M:%S')
-        duracion = int(datos.get('duracion', 60))
+        # Se espera que el JSON tenga 'fecha' (YYYY-MM-DD), 'hora_inicio' y 'hora_fin' en formato "HH:MM" 24h
+        fecha_str = datos.get('fecha')
+        hora_inicio_str = datos.get('hora_inicio')
+        hora_fin_str = datos.get('hora_fin')
+        if not (fecha_str and hora_inicio_str and hora_fin_str):
+            return jsonify({"status": "error", "message": "Faltan datos: se requieren 'fecha', 'hora_inicio' y 'hora_fin'"})
+        # Convertir a objetos datetime (naive)
+        raw_start = datetime.strptime(f"{fecha_str} {hora_inicio_str}", '%Y-%m-%d %H:%M')
+        raw_end = datetime.strptime(f"{fecha_str} {hora_fin_str}", '%Y-%m-%d %H:%M')
+        # Calcular el inicio del DST para el año ingresado
+        year = int(fecha_str[:4])
+        if raw_start >= dst_start(year):
+            offset_hours = 2
+        else:
+            offset_hours = 1
+        start_time = raw_start - timedelta(hours=offset_hours)
+        end_time = raw_end - timedelta(hours=offset_hours)
         descripcion = datos.get('descripcion', '')
-        enlace = create_calendar_event(service, titulo, fecha, duracion, descripcion)
+        enlace = create_calendar_event(service, titulo, start_time, end_time, descripcion)
         return jsonify({"status": "success", "evento": enlace})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
