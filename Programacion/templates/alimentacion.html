@@ -596,10 +596,15 @@ function updateCalendarEvents() {
 function createEventForDay(day) {
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
-    const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2, '0')}-${String(day).padStart(2, '0')}T09:00:00`;
+    const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const titulo = prompt("Ingresa el título del evento:", "Evento");
     if (!titulo) return alert("El título es obligatorio");
-    const duracion = prompt("Ingresa la duración en minutos:", "60");
+    const horario = prompt("De que hora a que hora es el evento? (ejemplo: 11:00 a 13:00)", "11:00 a 13:00");
+    if (!horario) return alert("El horario es obligatorio");
+    const parts = horario.split('a');
+    if (parts.length !== 2) return alert("Formato de horario incorrecto. Usa 'HH:MM a HH:MM'");
+    const hora_inicio = parts[0].trim();
+    const hora_fin = parts[1].trim();
     const descripcion = prompt("Ingresa una descripción (opcional):", "");
     
     fetch("/api/calendar/event", {
@@ -608,7 +613,8 @@ function createEventForDay(day) {
         body: JSON.stringify({
             titulo: titulo,
             fecha: dateStr,
-            duracion: duracion,
+            hora_inicio: hora_inicio,
+            hora_fin: hora_fin,
             descripcion: descripcion
         })
     })
