@@ -61,6 +61,26 @@ header nav a:hover {
   color: #58a058;
 }
 
+header nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+header nav ul li {
+  display: inline;
+}
+
+header nav ul li a {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+}
+
+header nav ul li a:hover {
+  color: #4caf50;
+}
+
 header .header-left h1 a {
   text-decoration: none;
   color: #fff;
@@ -476,3 +496,77 @@ main {
 
 /* ================= FIN CSS extraído ================= */
 /* # ...existing final rules o nuevos ajustes... */
+
+.progress-container {
+    margin: 20px 0;
+}
+
+.progress-bar {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 20px;
+}
+
+.progress {
+    height: 100%;
+    background-color: #4caf50;
+    transition: width 0.3s;
+}
+
+#insignias-list {
+    list-style: none;
+    padding: 0;
+}
+
+#insignias-list li {
+    background-color: #f4f4f4;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.logros-container {
+    padding: 5rem 2rem 2rem; /* Añadido espacio superior para evitar que el header lo tape */
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.progreso {
+    margin-bottom: 2rem;
+}
+
+.barra-progreso {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 20px;
+    margin: 10px 0;
+}
+
+.progreso-actual {
+    height: 100%;
+    background-color: #4caf50;
+    transition: width 0.3s;
+}
+
+#lista-logros {
+    list-style: none;
+    padding: 0;
+}
+
+#lista-logros li {
+    background-color: #f4f4f4;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#lista-logros li span {
+    font-weight: bold;
+}

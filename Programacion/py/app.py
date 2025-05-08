@@ -8,12 +8,13 @@ import time
 from datetime import datetime, timedelta
 
 import firebase_admin
-from firebase_admin import credentials, db as rtdb, storage
+from firebase_admin import credentials, db as rtdb, storage, firestore, initialize_app
 from flask import Flask, render_template, request, session, redirect, url_for, send_from_directory, jsonify
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 import functools
+import sqlite3
 
 # Importar módulos auxiliares (estos archivos pueden mantenerse separados)
 from auth import autorizar as google_autorizar, oauth2callback
@@ -331,6 +332,14 @@ def configuracion():
 @app.route('/ajustes')
 def ajustes():
     return render_template('ajustes.html')
+
+@app.route('/gym_virtual')
+def gym_virtual():
+    return render_template('gym_virtual.html')
+
+@app.route('/logros')
+def logros():
+    return render_template('logros.html')
 
 # OAuth: Autorización y callback de Google
 @app.route('/autorizar')
@@ -833,3 +842,222 @@ if __name__ == "__main__":
         iniciar_asistente()
     else:
         app.run(debug=True, port=8000)
+
+# Endpoint para generar planes de entrenamiento
+@app.route('/generate_plan', methods=['POST'])
+def generate_plan():
+    try:
+        # Obtener los datos enviados desde el frontend
+        data = request.json
+        if not data:
+            return jsonify({"error": "No se enviaron datos válidos."}), 400
+
+        level = data.get('level')
+        goals = data.get('goals')
+        conditions = data.get('conditions')
+
+        if not level or not goals:
+            return jsonify({"error": "Faltan datos obligatorios para generar el plan."}), 400
+
+        # Planes de ejemplo según el nivel
+        example_plans = {
+            "beginner": [
+                {"name": "Walking", "description": "20 minutos de caminata", "video": "walking.mp4", "duration": "20m"},
+                {"name": "Stretching", "description": "10 minutos de estiramientos básicos", "video": "stretching.mp4", "duration": "10m"}
+            ],
+            "intermediate": [
+                {"name": "Jogging", "description": "15 minutos de trote", "video": "jogging.mp4", "duration": "15m"},
+                {"name": "Push-ups", "description": "3 series de 10 flexiones", "video": "pushups.mp4", "duration": "10m"}
+            ],
+            "advanced": [
+                {"name": "HIIT", "description": "20 minutos de entrenamiento de alta intensidad", "video": "hiit.mp4", "duration": "20m"},
+                {"name": "Weightlifting", "description": "3 series de levantamiento de pesas", "video": "weightlifting.mp4", "duration": "15m"}
+            ]
+        }
+
+        # Seleccionar el plan según el nivel
+        plan = {
+            "level": level,
+            "goals": goals,
+            "conditions": conditions,
+            "exercises": example_plans.get(level, [])
+        }
+
+        return jsonify({"message": "Plan generado exitosamente", "plan": plan})
+    except Exception as e:
+        return jsonify({"error": f"Ocurrió un error inesperado: {str(e)}"}), 500
+
+# Iniciar la aplicación
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True, port=8000)
+
+# Crear base de datos SQLite
+def init_db():
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS plans (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT,
+        level TEXT,
+        goals TEXT,
+        conditions TEXT,
+        exercises TEXT
+    )''')
+    conn.commit()
+    conn.close()
+
+@app.route('/generate_plan', methods=['POST'])
+def generate_plan():
+    data = request.json
+    level = data.get('level')
+    goals = data.get('goals')
+    conditions = data.get('conditions')
+
+    # Generar plan de ejemplo
+    example_plans = {
+        "beginner": [{"name": "Walking", "description": "20 minutos de caminata"}],
+        "intermediate": [{"name": "Jogging", "description": "15 minutos de trote"}],
+        "advanced": [{"name": "HIIT", "description": "20 minutos de alta intensidad"}]
+    }
+    plan = example_plans.get(level, [])
+
+    # Guardar en la base de datos
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO plans (user_id, level, goals, conditions, exercises) VALUES (?, ?, ?, ?, ?)",
+              ("user123", level, ",".join(goals), ",".join(conditions), str(plan)))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Plan generado exitosamente", "plan": plan})
+
+
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True)
+
+from flask import jsonify
+from auth import get_credentials
+
+# Datos de logros simulados (puedes reemplazar con una API de Google si es necesario)
+LOGROS = [
+    {"id": 1, "nombre": "Primer Paso", "descripcion": "Completa tu primera actividad física", "xp": 10},
+    {"id": 2, "nombre": "Constancia", "descripcion": "Mantén la glucosa en rango durante 7 días", "xp": 50},
+    {"id": 3, "nombre": "Alimentación Saludable", "descripcion": "Completa un reto de alimentación", "xp": 30},
+]
+
+@app.route('/api/logros', methods=['GET'])
+def obtener_logros():
+    """Devuelve la lista de logros disponibles."""
+    return jsonify({"logros": LOGROS})
+
+@app.route('/api/progreso', methods=['GET'])
+def obtener_progreso():
+    """Devuelve el progreso del usuario desde el perfil de Google."""
+    creds = get_credentials()
+    if not creds:
+        return jsonify({"error": "No autenticado"}), 401
+
+    progreso = {
+        "nivel": 0,
+        "xp_actual": 0,
+        "xp_siguiente_nivel": 100,
+        "logros_obtenidos": []  # IDs de logros obtenidos
+    }
+    return jsonify(progreso)
+
+@app.route('/api/progreso', methods=['POST'])
+def actualizar_progreso():
+    """Actualiza el progreso del usuario."""
+    creds = get_credentials()
+    if not creds:
+        return jsonify({"error": "No autenticado"}), 401
+
+    data = request.json
+    logro_id = data.get("logro_id")
+    xp_ganado = next((logro["xp"] for logro in LOGROS if logro["id"] == logro_id), 0)
+
+    progreso = {
+        "nivel": 0,
+        "xp_actual": 0,
+        "xp_siguiente_nivel": 100,
+        "logros_obtenidos": []
+    }
+
+    progreso["xp_actual"] += xp_ganado
+    if progreso["xp_actual"] >= progreso["xp_siguiente_nivel"]:
+        progreso["nivel"] += 1
+        progreso["xp_actual"] %= progreso["xp_siguiente_nivel"]
+
+    progreso["logros_obtenidos"].append(logro_id)
+    return jsonify(progreso)
+
+from auth import get_credentials, guardar_progreso_google, cargar_progreso_google
+
+LOGROS = [
+    {"id": 1, "nombre": "🏃‍♂️ Primer Paso", "descripcion": "Completa tu primera rutina de ejercicio en la plataforma.", "xp": 50},
+    {"id": 2, "nombre": "🔄 Constancia Semanal", "descripcion": "Realiza al menos una sesión de ejercicio diaria durante 7 días consecutivos.", "xp": 200},
+    {"id": 3, "nombre": "🥗 Comida Saludable", "descripcion": "Registra 5 días seguidos de alimentación saludable en tu diario.", "xp": 100},
+    {"id": 4, "nombre": "💧 Hidratación Perfecta", "descripcion": "Cumple tu objetivo de hidratación diaria durante 10 días.", "xp": 150},
+    {"id": 5, "nombre": "🏅 Desafío Superado", "descripcion": "Completa un reto especial de la plataforma (por ejemplo, 'Semana sin azúcar añadida').", "xp": 300},
+]
+
+@app.route('/api/logros', methods=['GET'])
+def obtener_logros():
+    """Devuelve la lista de logros disponibles."""
+    return jsonify({"logros": LOGROS})
+
+@app.route('/api/progreso', methods=['GET', 'POST'])
+def progreso():
+    """Maneja el progreso del usuario."""
+    creds = get_credentials()
+    if not creds:
+        return jsonify({"error": "No autenticado"}), 401
+
+    if request.method == 'GET':
+        # Cargar progreso desde Google
+        progreso = cargar_progreso_google(creds)
+        if not progreso:
+            progreso = {
+                "nivel": 0,
+                "xp_actual": 0,
+                "xp_siguiente_nivel": 100,
+                "logros_obtenidos": [],
+            }
+        return jsonify(progreso)
+
+    if request.method == 'POST':
+        # Actualizar progreso
+        data = request.json
+        logro_id = data.get("logro_id")
+        if not logro_id:
+            return jsonify({"error": "ID de logro no proporcionado"}), 400
+
+        xp_ganado = next((logro["xp"] for logro in LOGROS if logro["id"] == logro_id), 0)
+        if xp_ganado == 0:
+            return jsonify({"error": "Logro no encontrado"}), 404
+
+        progreso = cargar_progreso_google(creds)
+        if not progreso:
+            progreso = {
+                "nivel": 0,
+                "xp_actual": 0,
+                "xp_siguiente_nivel": 100,
+                "logros_obtenidos": [],
+            }
+
+        if logro_id not in progreso["logros_obtenidos"]:
+            progreso["xp_actual"] += xp_ganado
+            if progreso["xp_actual"] >= progreso["xp_siguiente_nivel"]:
+                progreso["nivel"] += 1
+                progreso["xp_actual"] %= progreso["xp_siguiente_nivel"]
+            progreso["logros_obtenidos"].append(logro_id)
+
+        guardar_progreso_google(creds, progreso)
+        return jsonify(progreso)
+
+# Iniciar la aplicación
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True, port=8000)

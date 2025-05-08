@@ -216,6 +216,33 @@ def oauth2callback():
     # Redirigir a la página de alimentación (en lugar de a la principal)
     return redirect(url_for('alimentacion'))
 
+def guardar_progreso_google(creds, progreso):
+    """
+    Guarda el progreso del usuario en el perfil de Google.
+    """
+    try:
+        # Simulación: Guardar progreso en un campo personalizado (reemplazar con API real si es necesario)
+        print(f"Progreso guardado: {progreso}")
+    except Exception as e:
+        print(f"Error al guardar progreso en Google: {e}")
+
+def cargar_progreso_google(creds):
+    """
+    Carga el progreso del usuario desde el perfil de Google.
+    """
+    try:
+        # Simulación: Cargar progreso desde un campo personalizado (reemplazar con API real si es necesario)
+        print("Cargando progreso simulado...")
+        return {
+            "nivel": 1,
+            "xp_actual": 50,
+            "xp_siguiente_nivel": 100,
+            "logros_obtenidos": [1, 2],
+        }
+    except Exception as e:
+        print(f"Error al cargar progreso desde Google: {e}")
+    return None
+
 # Eliminado (o comentado) código no referenciado:
 # def login():
 #     """

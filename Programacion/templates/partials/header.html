@@ -9,35 +9,28 @@
 </head>
 <body>
     <header>
-      <div class="header-left">
-        <h1><a href="{{ url_for('principal') }}">VytalGym</a></h1>
-      </div>
-      <nav class="header-center">
-        <a href="{{ url_for('salud') }}">Salud</a>
-        <a href="{{ url_for('fitness') }}">Fitness</a>
-        <a href="{{ url_for('alimentacion') }}">Alimentación</a>
-        <a href="{{ url_for('precios') }}">Servicios</a>
-        <a href="{{ url_for('contacto') }}">Contacto</a>
-      </nav>
-      <div class="header-right">
-        {% if session.user %}
-          <div class="header-user">
-            {% if session.user.foto %}
-              <a href="{{ url_for('configurar_foto') }}" class="profile-link">
-                <img src="{{ session.user.foto }}"
-                     alt="{{ session.user.nombre }}"
-                     class="profile-img"
-                     title="Ir a configuración de foto">
-              </a>
-            {% endif %}
-            <a href="{{ url_for('logout') }}" class="logout-link" title="Cerrar sesión">
-              <i class="fas fa-sign-out-alt"></i>
-            </a>
-          </div>
-        {% else %}
-          <a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a>
-        {% endif %}
-      </div>
+        <div class="header-container">
+            <div class="logo">
+                <a href="{{ url_for('principal') }}">VytalGym</a>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('salud') }}">Salud</a>
+                <a href="{{ url_for('fitness') }}">Fitness</a>
+                <a href="{{ url_for('alimentacion') }}">Alimentación</a>
+                <a href="{{ url_for('precios') }}">Servicios</a>
+                <a href="{{ url_for('contacto') }}">Contacto</a>
+                <a href="{{ url_for('gym_virtual') }}">Gym Virtual</a>
+                <a href="{{ url_for('logros') }}">Logros</a>
+            </nav>
+            <div class="user-actions">
+                {% if session.user %}
+                    <img src="{{ session.user.foto }}" alt="Foto de perfil" class="profile-img">
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Cerrar sesión</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="login-btn">Iniciar sesión</a>
+                {% endif %}
+            </div>
+        </div>
     </header>
     
     <!-- Estilos mejorados del header con variables CSS -->
@@ -63,24 +56,27 @@
         transform: translateY(-100%);
       }
 
-      header .header-left h1 {
-        margin: 0;
-        font-size: 1.8rem;
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
       }
 
-      header .header-left h1 a {
+      .logo a {
         text-decoration: none;
         color: var(--primary-color);
         font-weight: 600;
         letter-spacing: 0.5px;
+        font-size: 1.8rem;
       }
 
-      header nav {
+      .nav-links {
         display: flex;
         gap: 1.8rem;
       }
 
-      header nav a {
+      .nav-links a {
         text-decoration: none;
         color: var(--text-color);
         font-weight: 500;
@@ -91,12 +87,12 @@
         padding: 0.5rem 0;
       }
 
-      header nav a:hover {
+      .nav-links a:hover {
         color: var(--primary-color);
       }
       
       /* Efecto de subrayado en hover de los links del nav */
-      header nav a::after {
+      .nav-links a::after {
         content: '';
         position: absolute;
         width: 0;
@@ -107,18 +103,18 @@
         transition: width 0.3s ease;
       }
       
-      header nav a:hover::after {
+      .nav-links a:hover::after {
         width: 100%;
       }
 
-      header .header-right {
+      .user-actions {
         display: flex;
         align-items: center;
         gap: 1rem;
       }
 
       /* Botón de Login */
-      header .header-right .btn-login {
+      .login-btn {
         background-color: var(--primary-color);
         color: white;
         padding: 0.6rem 1.2rem;
@@ -131,27 +127,14 @@
         font-size: 0.9rem;
       }
 
-      header .header-right .btn-login:hover {
+      .login-btn:hover {
         background-color: var(--secondary-color);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       }
       
       /* Estilo para usuario logueado - simplificado */
-      .header-user {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        position: relative;
-      }
-      
-      /* Estilo para la foto de perfil - círculo simple */
-      .profile-link {
-        display: block;
-        line-height: 0;
-      }
-      
-      .profile-img {
+      .user-actions img {
         width: 40px;
         height: 40px;
         border-radius: 50%;
@@ -159,13 +142,13 @@
       }
       
       /* Botón de logout */
-      .logout-link {
+      .logout-btn {
         color: var(--text-color);
         font-size: 1.1rem;
         line-height: 1;
       }
       
-      .logout-link:hover {
+      .logout-btn:hover {
         color: var(--primary-color);
       }
 
@@ -175,30 +158,17 @@
           padding: 0.7rem 1.5rem;
         }
         
-        header nav {
+        .nav-links {
           gap: 1.2rem;
         }
         
-        header .header-left h1 {
+        .logo a {
           font-size: 1.6rem;
         }
         
-        .welcome-text {
-          font-size: 0.85rem;
-          max-width: 120px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .profile-link, .profile-img {
-          /* Mantener dimensiones incluso en pantallas pequeñas */
+        .user-actions img {
           width: 36px;  
           height: 36px;
-        }
-        
-        .profile-img {
-          width: 32px;
-          height: 32px;
         }
       }
 
@@ -208,15 +178,11 @@
           padding: 0.7rem 1rem;
         }
         
-        header .header-left h1 {
+        .logo a {
           font-size: 1.4rem;
         }
         
-        header nav {
-          display: none;
-        }
-        
-        .welcome-text {
+        .nav-links {
           display: none;
         }
         
@@ -230,15 +196,9 @@
           cursor: pointer;
         }
 
-        .profile-link, .profile-img {
-          /* Asegurar tamaño correcto en móviles también */
+        .user-actions img {
           width: 36px;
           height: 36px;
-        }
-        
-        .profile-img {
-          width: 32px;
-          height: 32px;
         }
       }
     </style>
