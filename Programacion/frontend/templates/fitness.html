@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="default">
+<head>
+  <meta charset="UTF-8">
+  <title>Fitness - VytalGym</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- IMPORTANTE: Incluir el sistema de temas global -->
+  {% include 'partials/tema_global.html' %}
+  
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/fitness.css') }}">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
+  
+  <style>
+    /* Asegurarse que los estilos usan variables CSS */
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-middle) 40%, var(--gradient-end) 100%);
+      color: var(--text-color);
+      padding-top: 80px; /* Espacio para el header fijo */
+    }
+    
+    .titulo-seccion {
+      background-color: var(--header-bg);
+      color: var(--text-color);
+      padding: 1.5rem 2rem;
+      margin-top: 0; /* Ajustado para trabajar con el padding-top del body */
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 40px;
+    }
+    
+    .titulo-seccion h1 {
+      color: var(--primary-color);
+    }
+    
+    /* Estilo para secciones y tarjetas */
+    .date-selector,
+    .stats-section,
+    .chart-section,
+    .exercises-section,
+    .news-section,
+    .live-data-section {
+      background: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* Estilo para botones */
+    button, .btn {
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      transition: background-color 0.3s;
+    }
+    
+    button:hover, .btn:hover {
+      background-color: var(--primary-color);
+    }
+    
+    /* Estilo para títulos */
+    h1, h2, h3, h4 {
+      color: var(--primary-color);
+    }
+  </style>
+</head>
+<body>
+  {% include 'partials/header.html' %}
+  
+  <!-- Contenedor principal de la página -->
+  <div class="main-content">
+    <!-- Banner de Fitness -->
+    <div class="titulo-seccion">
+      <h1>Zona Fitness</h1>
+      <p>Bienvenido a tu panel de Fitness más avanzado. Elige una fecha para ver tus datos de pasos, calorías, distancia y sueño.</p>
+  </div>
+    
+    <!-- Selector de fecha -->
+    <div class="date-selector">
+      <label for="datePicker"><i class="fas fa-calendar"></i> Selecciona el día:</label>
+      <input type="date" id="datePicker" value="">
+      <button id="loadDataButton">Ver datos</button>
+    </div>
+    
+    <!-- Sección de Estadísticas -->
+    <div class="stats-section">
+      <h2><i class="fas fa-chart-line"></i> Estadísticas</h2>
+      <div class="stats-cards">
+        <div class="stat-card">
+          <div id="stat-steps">0</div>
+          <p>Pasos</p>
+        </div>
+        <div class="stat-card">
+          <div id="stat-calories">0</div>
+          <p>Calorías (kcal)</p>
+        </div>
+        <div class="stat-card">
+          <div id="stat-distance">0</div>
+          <p>Distancia (km)</p>
+        </div>
+        <div class="stat-card">
+          <div id="stat-sleep">0</div>
+          <p>Sueño (h)</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sección de Gráfica -->
+    <div class="chart-section">
+      <h2><i class="fas fa-chart-bar"></i> Gráfica de Progreso</h2>
+      <canvas id="fitnessChart" width="800" height="400"></canvas>
+    </div>
+    
+    <!-- Sección de Ejercicios Destacados -->
+    <div class="exercises-section">
+      <h2><i class="fas fa-dumbbell"></i> Ejercicios Destacados</h2>
+      <div class="exercise-list">
+        <div class="exercise-card">
+          <img src="https://picsum.photos/600/400?random=30" alt="Ejercicio 1">
+          <div>
+            <h3>Sentadillas</h3>
+            <p>Fortalecen glúteos, cuádriceps y espalda baja. Mantén la espalda recta y controla el descenso.</p>
+          </div>
+        </div>
+        <div class="exercise-card">
+          <img src="https://picsum.photos/600/400?random=31" alt="Ejercicio 2">
+          <div>
+            <h3>Flexiones</h3>
+            <p>Ideales para pectorales, hombros y brazos. Ajusta el ancho de manos para variar la dificultad.</p>
+          </div>
+        </div>
+        <div class="exercise-card">
+          <img src="https://picsum.photos/600/400?random=32" alt="Ejercicio 3">
+          <div>
+            <h3>Plancha</h3>
+            <p>Excelente para reforzar el core. Evita que la cadera se hunda y mantén la cabeza alineada con la espalda.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sección de Noticias y Artículos -->
+    <div class="news-section">
+      <h2><i class="fas fa-newspaper"></i> Noticias y Artículos</h2>
+      <div class="news-grid">
+        <div class="news-item">
+          <h3>Cardio en ayunas</h3>
+          <p>¿Funciona de verdad? Varios expertos explican sus beneficios y desventajas.</p>
+        </div>
+        <div class="news-item">
+          <h3>Entrenamientos HIIT</h3>
+          <p>Rutinas cortas pero intensas, ideales para quienes cuentan con poco tiempo al día.</p>
+        </div>
+        <div class="news-item">
+          <h3>Pilates vs Yoga</h3>
+          <p>Descubre en qué se diferencian y cuál puede ajustarse mejor a tus objetivos.</p>
+        </div>
+        <div class="news-item">
+          <h3>Nutrición deportiva</h3>
+          <p>La importancia de equilibrar tus macros para optimizar el rendimiento.</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sección de Datos en Vivo -->
+    <div class="live-data-section">
+      <h2><i class="fas fa-sync-alt"></i> Datos en vivo de Google Fit</h2>
+      <table class="data-table" id="fitnessDataTable">
+        <tr><td>Cargando datos...</td></tr>
+      </table>
+    </div>
+    
+    <!-- Footer -->
+    <div class="fitness-footer">
+      <p>&copy; 2025 - Proyecto Fitness IA</p>
+    </div>
+  </div>
+  
+  <!-- ================= JavaScript para Cargar Datos y Actualizar la Gráfica ================= -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const datePicker = document.getElementById("datePicker");
+      const loadDataButton = document.getElementById("loadDataButton");
+      const statSteps = document.getElementById("stat-steps");
+      const statCalories = document.getElementById("stat-calories");
+      const statDistance = document.getElementById("stat-distance");
+      const statSleep = document.getElementById("stat-sleep");
+      const dataTable = document.getElementById("fitnessDataTable");
+      let myChart = null;
+      
+      function updateChart(steps, cal, dist, sleep) {
+        const ctx = document.getElementById("fitnessChart").getContext("2d");
+        if (myChart) {
+          myChart.destroy();
+        }
+        myChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ["Pasos", "Calorías", "Distancia", "Sueño"],
+            datasets: [{
+              label: "Datos Seleccionados",
+              data: [steps, cal, dist, sleep],
+              backgroundColor: [
+                "rgba(0, 123, 255, 0.7)",
+                "rgba(40, 167, 69, 0.7)",
+                "rgba(111, 66, 193, 0.7)",
+                "rgba(255, 152, 0, 0.7)"
+              ],
+              borderColor: [
+                "rgba(0, 123, 255, 1)",
+                "rgba(40, 167, 69, 1)",
+                "rgba(111, 66, 193, 1)",
+                "rgba(255, 152, 0, 1)"
+              ],
+              borderWidth: 2
+            }]
+          },
+          options: {
+            scales: {
+              y: { beginAtZero: true }
+            },
+            responsive: true
+          }
+        });
+      }
+      
+      function loadDataForDate(dateStr) {
+        fetch("/datos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fecha: dateStr })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "success") {
+            const { pasos, calorias, distancia, sueno } = data.data;
+            statSteps.textContent = pasos > 0 ? pasos : "No disponible";
+            statCalories.textContent = calorias > 0 ? calorias : "No disponible";
+            statDistance.textContent = distancia > 0 ? distancia.toFixed(2) : "No disponible";
+            statSleep.textContent = sueno > 0 ? sueno.toFixed(2) : "No disponible";
+    
+            dataTable.innerHTML = `
+              <tr>
+                <th>Pasos</th>
+                <th>Calorías</th>
+                <th>Distancia (km)</th>
+                <th>Sueño (h)</th>
+              </tr>
+              <tr>
+                <td>${pasos > 0 ? pasos : "N/A"}</td>
+                <td>${calorias > 0 ? calorias : "N/A"}</td>
+                <td>${distancia > 0 ? distancia.toFixed(2) : "N/A"}</td>
+                <td>${sueno > 0 ? sueno.toFixed(2) : "N/A"}</td>
+              </tr>
+            `;
+            updateChart(pasos, calorias, distancia, sueno);
+          } else {
+            statSteps.textContent = "No disponible";
+            statCalories.textContent = "No disponible";
+            statDistance.textContent = "No disponible";
+            statSleep.textContent = "No disponible";
+            dataTable.innerHTML = `<tr><td colspan="4">Error: ${data.message}</td></tr>`;
+            updateChart(0, 0, 0, 0);
+          }
+        })
+        .catch(err => {
+          statSteps.textContent = "No disponible";
+          statCalories.textContent = "No disponible";
+          statDistance.textContent = "No disponible";
+          statSleep.textContent = "No disponible";
+          dataTable.innerHTML = `<tr><td colspan="4">Error al cargar datos</td></tr>`;
+          updateChart(0, 0, 0, 0);
+        });
+      }
+      
+      const today = new Date().toISOString().split("T")[0];
+      datePicker.value = today;
+      loadDataForDate(today);
+      
+      loadDataButton.addEventListener("click", function() {
+        const selectedDate = datePicker.value;
+        if (selectedDate) {
+          loadDataForDate(selectedDate);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
