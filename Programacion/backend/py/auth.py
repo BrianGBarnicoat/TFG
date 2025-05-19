@@ -22,8 +22,9 @@ SCOPES = [
 ]
 
 # Corrección de ruta absoluta para encontrar los archivos de credenciales
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CREDENTIALS_PATH = os.path.join(BASE_DIR, 'claves seguras', 'google_oauth_credentials.json')
+FIREBASE_CREDS_PATH = os.path.join(BASE_DIR, 'claves seguras', 'firebase_admin_credentials.json')
 
 print(f"BASE_DIR: {BASE_DIR}")
 print(f"Buscando credenciales en: {os.path.join(BASE_DIR, 'claves seguras')}")
@@ -38,11 +39,9 @@ if firebase_admin._apps:
 else:
     # Configurar Firebase (si no está ya inicializado)
     # Usar el mismo nombre de archivo que en app.py
-    firebase_creds_path = os.path.join(BASE_DIR, 'claves seguras', 'firebase_admin_credentials.json')
-    
-    # Verificar si el archivo existe
-    if not os.path.exists(firebase_creds_path):
-        print(f"ERROR: El archivo de credenciales no existe en: {firebase_creds_path}")
+    # Verificar si el archivo de credenciales de Firebase existe
+    if not os.path.exists(FIREBASE_CREDS_PATH):
+        print(f"ERROR: El archivo de credenciales no existe en: {FIREBASE_CREDS_PATH}")
         print("Intenta especificar la ruta completa en lugar de una ruta relativa.")
         # Intentar buscar el archivo en otras ubicaciones comunes
         alt_paths = [
@@ -53,30 +52,30 @@ else:
         for alt_path in alt_paths:
             if os.path.exists(alt_path):
                 print(f"Archivo encontrado en ruta alternativa: {alt_path}")
-                firebase_creds_path = alt_path
+                FIREBASE_CREDS_PATH = alt_path
                 break
     
     try:
-        cred = credentials.Certificate(firebase_creds_path)
+        cred = credentials.Certificate(FIREBASE_CREDS_PATH)
         firebase_admin.initialize_app(cred, {
             'databaseURL': FIREBASE_DB_URL,
             'storageBucket': FIREBASE_STORAGE_BUCKET
         })
         database = rtdb.reference("/")
-        print(f"Firebase inicializado correctamente con credenciales desde: {firebase_creds_path}")
+        print(f"Firebase inicializado correctamente con credenciales desde: {FIREBASE_CREDS_PATH}")
     except Exception as e:
         print(f"ERROR al inicializar Firebase: {e}")
         print("Verifique que las credenciales sean correctas y que tenga permisos para la base de datos.")
         database = None
 
 # Cargar credenciales de Google
-GOOGLE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "google_oauth_credentials.json")
-if os.path.exists(GOOGLE_CREDENTIALS_PATH):
-    with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
-        google_creds = json.load(f)['web']
-else:
-    print(f"ERROR: Archivo de credenciales de Google no encontrado en: {GOOGLE_CREDENTIALS_PATH}")
+# Verificar si el archivo de credenciales de Google existe
+if not os.path.exists(CREDENTIALS_PATH):
+    print(f"ERROR: Archivo de credenciales de Google no encontrado en: {CREDENTIALS_PATH}")
     google_creds = {}
+else:
+    with open(CREDENTIALS_PATH, 'r') as f:
+        google_creds = json.load(f)['web']
 
 def get_credentials():
     """

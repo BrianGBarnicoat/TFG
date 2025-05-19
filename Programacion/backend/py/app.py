@@ -6,6 +6,7 @@ import os
 import threading
 import time
 from datetime import datetime, timedelta
+import random  # Elimina este import si ya no lo necesitas
 
 import firebase_admin
 from firebase_admin import credentials, db as rtdb, storage
@@ -16,18 +17,19 @@ from werkzeug.utils import secure_filename
 import functools
 
 # Importar módulos auxiliares (estos archivos pueden mantenerse separados)
-from auth import autorizar as google_autorizar, oauth2callback
+from auth import autorizar as google_autorizar, oauth2callback, get_credentials
 from calendar_api import agregar_evento, get_calendar_events, borrar_evento
 from fitness import get_fitness_data, get_sleep_data
+from googleapiclient.discovery import build
 
 # --------------------------------------------------------------------
 # Configuración de Firebase
 # --------------------------------------------------------------------
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 CREDENTIALS_PATH = os.path.join(BASE_DIR, "claves seguras", "firebase_admin_credentials.json")
 
 # Configuración de Firebase actualizada con las nuevas URLs
-FIREBASE_DB_URL = 'https://tfgpb-4  48609-default-rtdb.firebaseio.com'
+FIREBASE_DB_URL = 'https://tfgpb-448609-default-rtdb.firebaseio.com'
 FIREBASE_STORAGE_BUCKET = 'tfgpb-448609.firebasestorage.app'
 
 if not os.path.exists(CREDENTIALS_PATH):
@@ -61,22 +63,22 @@ else:
 # Configuración de Flask
 # --------------------------------------------------------------------
 # Actualizar las rutas base
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
-LOGIN_DIR = os.path.join(BASE_DIR, 'Login')
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'frontend', 'templates')  # Actualizamos la ruta de las plantillas
+STATIC_DIR = os.path.join(BASE_DIR, 'frontend', 'static')
+LOGIN_DIR = os.path.join(BASE_DIR, 'frontend', 'Login')
 PROFILE_DIR = os.path.join(BASE_DIR, 'profile')
 
 # Configurar Flask con las rutas correctas
 app = Flask(__name__, 
-           template_folder=TEMPLATES_DIR,
+           template_folder=TEMPLATES_DIR,  # Usamos la nueva ruta de plantillas
            static_folder=STATIC_DIR)
 app.secret_key = "clave_secreta_segura"  # Cambia en producción
 CORS(app)
 bcrypt = Bcrypt(app)
 
 # Agregar la carpeta Login al path de búsqueda de templates
-app.jinja_loader.searchpath.extend([LOGIN_DIR, PROFILE_DIR])
+app.jinja_loader.searchpath = [TEMPLATES_DIR, LOGIN_DIR, PROFILE_DIR]
 
 # Debug: Imprimir rutas para verificar
 print("Templates Directory:", TEMPLATES_DIR)
@@ -828,8 +830,45 @@ def iniciar_asistente():
 # --------------------------------------------------------------------
 # Punto de entrada
 # --------------------------------------------------------------------
+@app.route('/datos', methods=['POST'])
+def obtener_datos():
+    if 'user' not in session:
+        return jsonify({"status": "error", "message": "Usuario no autenticado"}), 401
+    try:
+        data = request.get_json()
+        fecha_str = data.get("fecha")
+        if not fecha_str:
+            return jsonify({"status": "error", "message": "Fecha no proporcionada"}), 400
+
+        fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        today = datetime.now().date()
+        if fecha > today:
+            return jsonify({
+                "status": "success",
+                "mensaje": "No hay datos para el dia posterior al dia actual",
+                "data": {"pasos": 0, "calorias": 0, "distancia": 0, "sueno": 0}
+            })
+
+        pasos    = get_fitness_data("steps", fecha_str)
+        calorias = get_fitness_data("calories", fecha_str)
+        distancia = get_fitness_data("distance", fecha_str)
+        sueno    = get_sleep_data(fecha_str)
+
+        datos = {
+            "pasos": pasos,
+            "calorias": calorias,
+            "distancia": distancia,
+            "sueno": sueno
+        }
+        return jsonify({"status": "success", "data": datos})
+    except Exception as e:
+        print(f"Error en /datos: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Justo antes de arrancar el servidor, imprime las rutas registradas:
+print("Rutas registradas:", app.url_map)
+
 if __name__ == "__main__":
-    # Si prefieres iniciar el asistente de menú, usa: python app.py --menu
     if "--menu" in sys.argv:
         iniciar_asistente()
     else:
