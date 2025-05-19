@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnóstico de Firebase - VytalGym</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pagina.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <style>
+    .diagnostico-container {
+      max-width: 800px;
+      margin: 100px auto 30px;
+      background-color: var(--card-color);
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+    
+    .diagnostico-header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .diagnostico-body {
+      padding: 30px;
+    }
+    
+    .test-section {
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .test-section h3 {
+      margin-bottom: 15px;
+      color: var(--primary-color);
+    }
+    
+    .test-btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    
+    .test-btn:hover {
+      background-color: #4CAF50;
+    }
+    
+    .result-box {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 5px;
+      border-left: 4px solid var(--primary-color);
+      background-color: rgba(0, 0, 0, 0.1);
+      overflow-x: auto;
+    }
+    
+    .success {
+      border-left-color: #4CAF50;
+    }
+    
+    .error {
+      border-left-color: #F44336;
+    }
+    
+    .warning {
+      border-left-color: #FF9800;
+    }
+    
+    pre {
+      margin: 10px 0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .online {
+      background-color: #4CAF50;
+    }
+    
+    .offline {
+      background-color: #F44336;
+    }
+    
+    .config-info {
+      font-family: monospace;
+      background-color: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 5px;
+    }
+    
+    .section-divider {
+      margin: 30px 0;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      line-height: 0;
+    }
+    
+    .section-divider span {
+      background-color: var(--card-color);
+      padding: 0 15px;
+      font-weight: bold;
+      font-size: 1.1em;
+      position: relative;
+      top: 10px;
+    }
+    
+    .data-preview {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background-color: rgba(0, 0, 0, 0.1);
+      color: var(--text-color);
+    }
+  </style>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  
+  <!-- Configuración Firebase -->
+  <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+</head>
+<body>
+  {% include 'partials/header.html' %}
+  
+  <div class="diagnostico-container">
+    <div class="diagnostico-header">
+      <h1><i class="fas fa-stethoscope"></i> Diagnóstico de Firebase</h1>
+      <p>Esta herramienta ayuda a verificar la correcta configuración de Firebase para VytalGym</p>
+    </div>
+    
+    <div class="diagnostico-body">
+      {% if not session.user %}
+      <div class="result-box error">
+        <h3>No hay sesión activa</h3>
+        <p>Debes <a href="{{ url_for('login') }}">iniciar sesión</a> para realizar el diagnóstico.</p>
+      </div>
+      {% else %}
+      <div class="result-box">
+        <h3>Información de Usuario</h3>
+        <p><strong>Email:</strong> {{ session.user.email }}</p>
+        <p><strong>Nombre:</strong> {{ session.user.nombre }}</p>
+        <p><strong>ID (Base de datos):</strong> {{ session.user.email.replace('.', '_') }}</p>
+        <p><strong>Método de login:</strong> {{ session.user.login_method }}</p>
+      </div>
+      
+      <div class="test-section">
+        <h3>Prueba 1: Firebase SDK</h3>
+        <p>Verifica que el SDK de Firebase esté cargado correctamente.</p>
+        <button class="test-btn" id="checkSdkBtn">Verificar SDK</button>
+        <div class="result-box" id="sdkResult" style="display: none;"></div>
+      </div>
+      
+      <div class="test-section">
+        <h3>Prueba 2: Conexión a Firebase Realtime Database</h3>
+        <p>Verifica la conexión con la base de datos en tiempo real de Firebase.</p>
+        <button class="test-btn" id="checkConnectionBtn">Probar Conexión</button>
+        <div class="result-box" id="connectionResult" style="display: none;"></div>
+      </div>
+      
+      <div class="test-section">
+        <h3>Prueba 3: Lectura/Escritura en Firebase</h3>
+        <p>Prueba la capacidad de leer y escribir datos en Firebase Realtime Database.</p>
+        <button class="test-btn" id="testReadWriteBtn">Probar Lectura/Escritura</button>
+        <div class="result-box" id="readWriteResult" style="display: none;"></div>
+      </div>
+      
+      <div class="section-divider">
+        <span>Preferencias de Usuario</span>
+      </div>
+      
+      <div class="test-section">
+        <h3>Preferencias Actuales</h3>
+        <p>Muestra las preferencias guardadas en la sesión actual.</p>
+        <button class="test-btn" id="showPrefsBtn">Mostrar Preferencias</button>
+        <div class="result-box" id="prefsResult" style="display: none;">
+          <h4>Preferencias en Sesión:</h4>
+          <pre id="sessionPrefs">{{ session.user_preferences }}</pre>
+          
+          <h4>Preferencias en Firebase:</h4>
+          <div id="firebasePrefs">Cargando...</div>
+        </div>
+      </div>
+      
+      <div class="test-section">
+        <h3>Guardar Tema de Prueba</h3>
+        <p>Guarda un tema en Firebase para verificar el funcionamiento.</p>
+        <div class="form-group">
+          <label for="testTheme">Tema de prueba:</label>
+          <select class="form-control" id="testTheme">
+            <option value="default">Default</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="blue">Blue</option>
+            <option value="purple">Purple</option>
+          </select>
+        </div>
+        <button class="test-btn" id="saveThemeBtn">Guardar Tema</button>
+        <div class="result-box" id="saveThemeResult" style="display: none;"></div>
+      </div>
+      
+      <div class="test-section">
+        <h3>Guardar Color de Prueba</h3>
+        <p>Guarda un color personalizado en Firebase.</p>
+        <div class="form-group">
+          <label for="colorVar">Variable CSS:</label>
+          <select class="form-control" id="colorVar">
+            <option value="--primary-color">--primary-color</option>
+            <option value="--secondary-color">--secondary-color</option>
+            <option value="--header-bg">--header-bg</option>
+            <option value="--text-color">--text-color</option>
+            <option value="--background-color">--background-color</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="colorValue">Valor:</label>
+          <input type="color" class="form-control" id="colorValue" value="#4CAF50">
+        </div>
+        <button class="test-btn" id="saveColorBtn">Guardar Color</button>
+        <div class="result-box" id="saveColorResult" style="display: none;"></div>
+      </div>
+      
+      <div class="test-section">
+        <h3>Sincronizar Preferencias</h3>
+        <p>Sincroniza las preferencias desde Firebase a la sesión.</p>
+        <button class="test-btn" id="syncPrefsBtn">Sincronizar Preferencias</button>
+        <div class="result-box" id="syncResult" style="display: none;"></div>
+      </div>
+      
+      <div class="section-divider">
+        <span>Información de Configuración</span>
+      </div>
+      
+      <div class="result-box">
+        <h3>Configuración de Firebase</h3>
+        <code class="config-info">
+          Database URL: https://tfgbp-d9051-default-rtdb.europe-west1.firebasedatabase.app<br>
+          Storage Bucket: gs://tfgbp-d9051.appspot.com
+        </code>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      {% if session.user %}
+      const userEmail = "{{ session.user.email }}";
+      const userEmailKey = userEmail.replace('.', '_');
+      
+      // Prueba 1: Verificar Firebase SDK
+      document.getElementById('checkSdkBtn').addEventListener('click', function() {
+        const resultBox = document.getElementById('sdkResult');
+        resultBox.style.display = 'block';
+        
+        if (typeof firebase !== 'undefined') {
+          resultBox.innerHTML = `
+            <p><i class="fas fa-check-circle" style="color: #4CAF50;"></i> SDK cargado correctamente</p>
+            <p><strong>Firebase:</strong> v${firebase.SDK_VERSION}</p>
+            <p><strong>App:</strong> ${firebase.apps.length > 0 ? '✅ Inicializada' : '❌ No inicializada'}</p>
+          `;
+          resultBox.className = 'result-box success';
+        } else {
+          resultBox.innerHTML = `
+            <p><i class="fas fa-times-circle" style="color: #F44336;"></i> Error: Firebase SDK no está disponible</p>
+            <p>Verifica que los scripts de Firebase estén cargados correctamente.</p>
+          `;
+          resultBox.className = 'result-box error';
+        }
+      });
+      
+      // Prueba 2: Verificar conexión a Firebase
+      document.getElementById('checkConnectionBtn').addEventListener('click', function() {
+        const resultBox = document.getElementById('connectionResult');
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = '<p>Verificando conexión...</p>';
+        resultBox.className = 'result-box';
+        
+        if (typeof firebase === 'undefined' || !firebase.database) {
+          resultBox.innerHTML = `
+            <p><i class="fas fa-times-circle" style="color: #F44336;"></i> Error: Firebase Database no está disponible</p>
+          `;
+          resultBox.className = 'result-box error';
+          return;
+        }
+        
+        try {
+          const connectedRef = firebase.database().ref('.info/connected');
+          connectedRef.on('value', function(snap) {
+            if (snap.val() === true) {
+              resultBox.innerHTML = `
+                <p><i class="fas fa-check-circle" style="color: #4CAF50;"></i> Conexión establecida con Firebase</p>
+                <p><span class="status-indicator online"></span> Online</p>
+              `;
+              resultBox.className = 'result-box success';
+            } else {
+              resultBox.innerHTML = `
+                <p><i class="fas fa-times-circle" style="color: #F44336;"></i> No se pudo conectar a Firebase</p>
+                <p><span class="status-indicator offline"></span> Offline</p>
+              `;
+              resultBox.className = 'result-box error';
+            }
+          });
+        } catch (error) {
+          resultBox.innerHTML = `
+            <p><i class="fas fa-times-circle" style="color: #F44336;"></i> Error al verificar conexión</p>
+            <p>${error.message}</p>
+          `;
+          resultBox.className = 'result-box error';
+        }
+      });
+      
+      // Prueba 3: Lectura/Escritura en Firebase
+      document.getElementById('testReadWriteBtn').addEventListener('click', function() {
+        const resultBox = document.getElementById('readWriteResult');
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = '<p>Realizando prueba de lectura/escritura...</p>';
+        resultBox.className = 'result-box';
+        
+        if (typeof firebase === 'undefined' || !firebase.database) {
+          resultBox.innerHTML = `
+            <p><i class="fas fa-times-circle" style="color: #F44336;"></i> Error: Firebase Database no está disponible</p>
+          `;
+          resultBox.className = 'result-box error';
+          return;
+        }
+        
+        try {
+          const testRef = firebase.database().ref(`_test_diagnostico/${userEmailKey}`);
+          const timestamp = new Date().toISOString();
+          const testData = {
+            timestamp: timestamp,
+            message: 'Prueba de escritura',
+            browser: navigator.userAgent
+          };
+          
+          // Prueba de escritura
+          testRef.set(testData)
+            .then(() => {
+              // Prueba de lectura
+              return testRef.once('value');
+            })
+            .then((snapshot) => {
+              const data = snapshot.val();
+              resultBox.innerHTML = `
+                <p><i class="fas fa-check-circle" style="color: #4CAF50;"></i> Prueba exitosa</p>
+                <p><strong>Escritura:</strong> ✅ Completada</p>
+                <p><strong>Lectura:</strong> ✅ Completada</p>
+                <p><strong>Datos leídos:</strong></p>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+              `;
+              resultBox.className = 'result-box success';
+            })
+            .catch((error) => {
+              resultBox.innerHTML = `
+                <p><i class="fas fa-times-circle" style="color: #F44336;"></i> Error en la prueba</p>
+                <p>${error.message}</p>
+              `;
+              resultBox.className = 'result-box error';
+            });
+        } catch (error) {
+          resultBox.innerHTML = `
+            <p><i class="fas fa-times-circle" style="color: #F44336;"></i> Error al realizar prueba</p>
+            <p>${error.message}</p>
+          `;
+          resultBox.className = 'result-box error';
+        }
+      });
+      
+      // Mostrar preferencias
+      document.getElementById('showPrefsBtn').addEventListener('click', function() {
+        const resultBox = document.getElementById('prefsResult');
+        const firebasePrefDiv = document.getElementById('firebasePrefs');
+        resultBox.style.display = 'block';
+        
+        try {
+          const userRef = firebase.database().ref(`usuarios/${userEmailKey}/preferencias`);
+          userRef.once('value')
+            .then((snapshot) => {
+              const data = snapshot.val() || {};
+              firebasePrefDiv.innerHTML = `<pre

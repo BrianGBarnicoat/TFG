@@ -1,0 +1,74 @@
+1. Sistema de Logros y Progresión tipo RPG
+Prompt:
+
+Quiero que desarrolles un sistema de logros y progresión tipo RPG para una web orientada a la salud y el bienestar.
+
+Características:
+
+Los usuarios ganan experiencia (XP) y suben de nivel al completar acciones saludables (ejemplo: registrar actividad física, mantener la glucosa en rango, completar retos de alimentación, etc.).
+
+Cada logro desbloquea una insignia o recompensa virtual.
+
+Hay un perfil de usuario donde se muestran el nivel, los logros obtenidos, las insignias y una barra de progreso.
+
+El sistema debe ser fácilmente integrable en una web hecha con Flask (Python) y Firebase.
+
+Requisitos técnicos:
+
+Estructura de datos para logros, niveles y XP.
+
+Ejemplo de endpoints (Flask) para actualizar y consultar la progresión del usuario.
+
+Ejemplo de interfaz (HTML/JS) para mostrar el perfil RPG y los logros.
+
+Dame el código necesario para backend y frontend, y explica cómo se integraría en la web.
+
+2. Biblioteca de Historias Inspiradoras
+Prompt:
+
+Necesito el código para una biblioteca digital de historias inspiradoras para una web de salud y bienestar.
+
+Características:
+
+Los usuarios pueden subir relatos personales (texto e imagen opcional) sobre su experiencia con la diabetes o el bienestar.
+
+Las historias se muestran en una galería pública, con opción de filtrar por categorías (motivación, consejos, humor, etc.).
+
+Los visitantes pueden dejar comentarios y reacciones (me gusta, corazoncito, etc.) en cada historia.
+
+Moderación básica para aprobar o rechazar historias antes de publicarlas.
+
+Requisitos técnicos:
+
+Backend en Flask y base de datos en Firebase.
+
+Endpoints para subir, listar, comentar y moderar historias.
+
+Ejemplo de frontend (HTML/JS) para la galería y el formulario de subida.
+
+Proporcióname el código base para backend y frontend, y una breve explicación de cómo se enlazan los componentes.
+
+3. Plataforma de Ejercicios Adaptativos (tipo Gym Virtual Center)
+Prompt:
+
+Quiero el código para una plataforma de ejercicios adaptativos inspirada en Gym Virtual Center, para una web de salud y bienestar.
+
+Características:
+
+El usuario introduce su nivel físico, objetivos y condiciones médicas (por ejemplo, diabetes tipo 1 o 2).
+
+El sistema genera automáticamente un plan de entrenamiento personalizado, con ejercicios adaptados a sus necesidades.
+
+Cada rutina incluye vídeos o imágenes demostrativas, descripción y temporizador.
+
+El usuario puede marcar ejercicios como completados y ver su progreso.
+
+Requisitos técnicos:
+
+Backend en Flask, almacenamiento en Firebase.
+
+Ejemplo de endpoints para generar y guardar rutinas, y para registrar ejercicios completados.
+
+Ejemplo de frontend (HTML/JS) para mostrar el plan de entrenamiento, los vídeos y el seguimiento de progreso.
+
+Dame el código necesario para backend y frontend, y explica cómo se integraría todo en la web.

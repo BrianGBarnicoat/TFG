@@ -1,0 +1,101 @@
+/**
+ * Variables CSS de VytalGym - Versión Reforzada
+ * Este archivo centraliza todas las variables CSS usadas en los temas
+ */
+
+/* Tema por defecto (variables base) */
+:root {
+  /* Variables de color principales */
+  --primary-color: #58a058 !important;
+  --secondary-color: #004d40 !important;
+  --background-color: rgba(28, 40, 28, 0.9) !important;
+  --text-color: #ffffff !important;
+  --header-bg: rgba(0, 10, 20, 0.95) !important;
+  --card-color: rgba(40, 50, 40, 0.9) !important;
+  
+  /* Variables de color secundarias */
+  --accent-color: #3e7b3e;
+  --error-color: #ff5252;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --info-color: #2196f3;
+
+  /* Variables para gradientes */
+  --gradient-start: var(--background-color);
+  --gradient-middle: var(--background-color);
+  --gradient-end: var(--background-color);
+  
+  /* Transiciones */
+  --transition-speed: 0.3s;
+}
+
+/* Tema oscuro */
+html[data-theme="dark"] {
+  --primary-color: #388e3c !important;
+  --secondary-color: #00352c !important;
+  --background-color: rgba(20, 20, 20, 0.95) !important;
+  --text-color: #e0e0e0 !important;
+  --header-bg: rgba(10, 10, 10, 0.98) !important;
+  --card-color: rgba(30, 30, 30, 0.95) !important;
+}
+
+/* Tema claro */
+html[data-theme="light"] {
+  --primary-color: #4CAF50 !important;
+  --secondary-color: #2E7D32 !important;
+  --background-color: rgba(240, 240, 240, 0.95) !important;
+  --text-color: #333333 !important;
+  --header-bg: rgba(255, 255, 255, 0.98) !important;
+  --card-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Tema azul */
+html[data-theme="blue"] {
+  --primary-color: #2196F3 !important;
+  --secondary-color: #0D47A1 !important;
+  --background-color: rgba(25, 32, 65, 0.95) !important;
+  --text-color: #ffffff !important;
+  --header-bg: rgba(13, 71, 161, 0.95) !important;
+  --card-color: rgba(30, 50, 90, 0.9) !important;
+}
+
+/* Tema púrpura */
+html[data-theme="purple"] {
+  --primary-color: #9C27B0 !important;
+  --secondary-color: #6A1B9A !important;
+  --background-color: rgba(60, 30, 70, 0.95) !important;
+  --text-color: #ffffff !important;
+  --header-bg: rgba(40, 20, 50, 0.95) !important;
+  --card-color: rgba(70, 40, 80, 0.9) !important;
+}
+
+/* Asegurar transiciones suaves para los cambios de color */
+body, button, a, header, section, .card, .btn {
+  transition: background-color var(--transition-speed),
+              color var(--transition-speed),
+              border-color var(--transition-speed),
+              box-shadow var(--transition-speed);
+}
+
+/* Prioridad absoluta para los estilos inline - refuerzo extra */
+html[style*="--primary-color"],
+html[style*="--secondary-color"],
+html[style*="--background-color"],
+html[style*="--text-color"],
+html[style*="--header-bg"],
+html[style*="--card-color"] {
+  /* La regla vacía aumenta la especificidad para los estilos inline */
+}
+
+/* Clases útiles para depuración */
+.debug-theme {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 9999;
+}
