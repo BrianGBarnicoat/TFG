@@ -1,0 +1,217 @@
+<style>
+  .navbar {
+    width: 100%;
+    height: 60px;
+    background: #f5f8fa;
+    border-bottom: 2px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
+  .navbar-left {
+    display: flex;
+    align-items: center;
+  }
+  .logo {
+    color: #0297c5;
+    font-weight: 700;
+    font-size: 24px;
+    margin-right: 32px;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+  }
+  .navbar-menu {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #6b7683;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s;
+    gap: 6px;
+  }
+  .nav-item.active, .nav-item:hover {
+    background: #eaf4fb;
+    color: #0297c5;
+  }
+  .nav-item svg {
+    width: 20px;
+    height: 20px;
+    fill: #b0c4d8;
+    flex-shrink: 0;
+  }
+  .nav-item.active svg, .nav-item:hover svg {
+    fill: #0297c5;
+  }
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .login-btn {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    color: #6b7683;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, border 0.15s;
+    text-decoration: none;
+  }
+  .login-btn:hover {
+    background: #f0f4f8;
+    border-color: #b0c4d8;
+  }
+  .register-btn {
+    background: #0277bd;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+  .register-btn:hover {
+    background: #015a8c;
+  }
+  .profile-link {
+    display: block;
+    line-height: 0;
+  }
+  .profile-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .logout-link {
+    color: #6b7683;
+    font-size: 1.3rem;
+    margin-left: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .logout-link:hover {
+    color: #0297c5;
+  }
+  @media (max-width: 900px) {
+    .navbar-menu {
+      gap: 2px;
+    }
+    .logo {
+      font-size: 20px;
+      margin-right: 16px;
+    }
+  }
+  @media (max-width: 700px) {
+    .navbar {
+      flex-direction: column;
+      height: auto;
+      padding: 8px;
+    }
+    .navbar-left, .navbar-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .navbar-menu {
+      flex-wrap: wrap;
+      gap: 0;
+    }
+    .nav-item {
+      font-size: 14px;
+      padding: 6px 8px;
+    }
+  }
+</style>
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="{{ url_for('principal') }}" class="logo">VytalGym</a>
+    <div class="navbar-menu">
+      <a class="nav-item{% if request.endpoint == 'principal' %} active{% endif %}" href="{{ url_for('principal') }}">
+        <!-- Casa -->
+        <svg viewBox="0 0 24 24"><path d="M3 10.75V20a1 1 0 0 0 1 1h5.5v-6h5v6H20a1 1 0 0 0 1-1V10.75a1 1 0 0 0-.33-.74l-7-6.36a1 1 0 0 0-1.34 0l-7 6.36a1 1 0 0 0-.33.74z"/></svg>
+        Inicio
+      </a>
+      <a class="nav-item{% if request.endpoint == 'salud' %} active{% endif %}" href="{{ url_for('salud') }}">
+        <!-- Salud: icono de electrocardiograma -->
+        <svg viewBox="0 0 24 24">
+          <polyline points="3 12 7 12 10 19 14 5 17 12 21 12" fill="none" stroke="#b0c4d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Salud
+      </a>
+      <a class="nav-item{% if request.endpoint == 'fitness' %} active{% endif %}" href="{{ url_for('fitness') }}">
+        <!-- Fitness: icono de mancuerna -->
+        <svg viewBox="0 0 24 24" style="transform: rotate(-30deg);">
+          <rect x="0.5" y="9" width="5" height="6" rx="1.5" fill="#b0c4d8"/>
+          <rect x="18.5" y="9" width="5" height="6" rx="1.5" fill="#b0c4d8"/>
+          <rect x="6" y="11" width="12" height="2.5" rx="1.2" fill="#b0c4d8"/>
+          <rect x="5" y="9" width="2" height="6" rx="1" fill="#b0c4d8"/>
+          <rect x="17" y="9" width="2" height="6" rx="1" fill="#b0c4d8"/>
+        </svg>
+        Fitness
+      </a>
+      <a class="nav-item{% if request.endpoint == 'alimentacion' %} active{% endif %}" href="{{ url_for('alimentacion') }}">
+        <!-- Nutrición: icono de manzana -->
+        <svg viewBox="0 0 24 24">
+          <ellipse cx="12" cy="14" rx="6" ry="7" fill="#b0c4d8"/>
+          <path d="M14 6c1.5-1 3-1 4 0" fill="none" stroke="#0297c5" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="11.2" y="4" width="1.6" height="3" rx="0.8" fill="#0297c5"/>
+        </svg>
+        Alimentación
+      </a>
+      <a class="nav-item{% if request.endpoint == 'precios' %} active{% endif %}" href="{{ url_for('precios') }}">
+        <!-- Calendario: icono de calendario -->
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="#b0c4d8" stroke-width="2"/>
+          <line x1="16" y1="3" x2="16" y2="7" stroke="#b0c4d8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="8" y1="3" x2="8" y2="7" stroke="#b0c4d8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="3" y1="9" x2="21" y2="9" stroke="#b0c4d8" stroke-width="2"/>
+          <rect x="7" y="13" width="2" height="2" rx="1" fill="#b0c4d8"/>
+          <rect x="11" y="13" width="2" height="2" rx="1" fill="#b0c4d8"/>
+          <rect x="15" y="13" width="2" height="2" rx="1" fill="#b0c4d8"/>
+        </svg>
+        Servicios
+      </a>
+      <a class="nav-item{% if request.endpoint == 'contacto' %} active{% endif %}" href="{{ url_for('contacto') }}">
+        <!-- Chat -->
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Contacto
+      </a>
+    </div>
+  </div>
+  <div class="navbar-right">
+    {% if session.user %}
+      {% if session.user.foto %}
+        <a href="{{ url_for('configurar_foto') }}" class="profile-link" title="Ir a configuración de foto">
+          <img src="{{ session.user.foto }}" alt="{{ session.user.nombre }}" class="profile-img">
+        </a>
+      {% endif %}
+      <a href="{{ url_for('logout') }}" class="logout-link" title="Cerrar sesión">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="login-btn">Iniciar sesión</a>
+      <a href="{{ url_for('login') }}#sign-up" class="register-btn">Registrarse</a>
+    {% endif %}
+  </div>
+</nav>
