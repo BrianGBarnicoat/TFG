@@ -1,0 +1,27 @@
+<!-- SISTEMA DE TEMAS - INCLUIR EN TODAS LAS PÁGINAS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme-variables.css') }}">
+<script src="{{ url_for('static', filename='js/color-picker.js') }}"></script>
+<script>
+  // Aplicar tema y colores guardados inmediatamente para evitar parpadeos
+  (function() {
+    // 1. Aplicar tema base
+    const savedTheme = localStorage.getItem('selected-theme') || 'default';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // 2. Sobrescribir con colores personalizados si existen
+    const colorVars = [
+      { css: '--primary-color', key: 'primaryColor' }, 
+      { css: '--secondary-color', key: 'secondaryColor' },
+      { css: '--header-bg', key: 'headerBg' },
+      { css: '--text-color', key: 'textColor' },
+      { css: '--background-color', key: 'backgroundColor' }
+    ];
+    
+    colorVars.forEach(color => {
+      const saved = localStorage.getItem(color.key);
+      if (saved) {
+        document.documentElement.style.setProperty(color.css, saved);
+      }
+    });
+  })();
+</script>
