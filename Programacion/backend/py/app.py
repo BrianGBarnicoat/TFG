@@ -1,3 +1,28 @@
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    implementation project(':jtds-1.3.1')
+    implementation project(':library')
+    implementation project(':librarySV')
+    implementation 'com.android.support:support-v4:25.2.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:design:25.3.1'
+    implementation 'com.roughike:bottom-bar:1.3.9'
+    implementation 'com.android.support:recyclerview-v7:25.2.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.0-alpha8'
+    implementation 'com.github.clans:fab:1.6.2'
+    implementation 'de.hdodenhof:circleimageview:1.3.0'
+    implementation 'com.android.support:cardview-v7:25.3.1'
+    testImplementation 'junit:junit:4.12'
+    implementation "com.android.support:gridlayout-v7:23.1.1"
+}
+
+
+
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -164,6 +189,56 @@ def cargar_preferencias_firebase(email_key):
     except Exception as e:
         print(f"Error al cargar preferencias: {str(e)}")
         return preferencias
+
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+and this is build.gradle(Module:app)
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
+    defaultConfig {
+        applicationId "abtech.waiteriano.com.waitrer"
+        minSdkVersion 18
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    implementation project(':jtds-1.3.1')
+    implementation project(':library')
+    implementation project(':librarySV')
+    implementation 'com.android.support:support-v4:25.2.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:design:25.3.1'
+    implementation 'com.roughike:bottom-bar:1.3.9'
+    implementation 'com.android.support:recyclerview-v7:25.2.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.0-alpha8'
+    implementation 'com.github.clans:fab:1.6.2'
+    implementation 'de.hdodenhof:circleimageview:1.3.0'
+    implementation 'com.android.support:cardview-v7:25.3.1'
+    testImplementation 'junit:junit:4.12'
+    implementation "com.android.support:gridlayout-v7:23.1.1"
+}
+
 
 # --------------------------------------------------------------------
 # Rutas de la Aplicación
