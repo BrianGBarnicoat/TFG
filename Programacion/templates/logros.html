@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logros</title>
+    <link rel="stylesheet" href="../static/css/pagina.css">
+</head>
+<body>
+    {% include 'partials/header.html' %}
+    <main class="logros-container">
+        <h1 style="color: black;">Logros y Progreso RPG</h1>
+        <div class="progreso">
+            <div class="nivel">
+                <p style="color: black;">Nivel: <span id="nivel-usuario">0</span></p>
+            </div>
+            <div class="barra-progreso">
+                <div class="progreso-actual" id="barra-xp" style="width: 0%;"></div>
+            </div>
+            <p style="color: black;">XP: <span id="xp-actual">0</span> / <span id="xp-siguiente-nivel">100</span></p>
+        </div>
+        <h2 style="color: black;">Logros Completados: <span id="contador-logros">0</span> / <span id="total-logros">0</span></h2>
+        <h2 style="color: black;">Logros Disponibles</h2>
+        <ul id="lista-logros">
+            <li class="logro-item">
+                <div>
+                    <span class="logro-nombre" style="color: black;">🏃‍♂️ Primer Paso</span>
+                    <p class="logro-descripcion" style="color: black;">Completa tu primera rutina de ejercicio en la plataforma.</p>
+                    <p class="logro-xp" style="color: black;">XP: 50</p>
+                </div>
+                <button class="btn-completar" onclick="completarLogro(1, 50)">Completar</button>
+            </li>
+            <li class="logro-item">
+                <div>
+                    <span class="logro-nombre" style="color: black;">🔄 Constancia Semanal</span>
+                    <p class="logro-descripcion" style="color: black;">Realiza al menos una sesión de ejercicio diaria durante 7 días consecutivos.</p>
+                    <p class="logro-xp" style="color: black;">XP: 200</p>
+                </div>
+                <button class="btn-completar" onclick="completarLogro(2, 200)">Completar</button>
+            </li>
+            <li class="logro-item">
+                <div>
+                    <span class="logro-nombre" style="color: black;">🥗 Comida Saludable</span>
+                    <p class="logro-descripcion" style="color: black;">Registra 5 días seguidos de alimentación saludable en tu diario.</p>
+                    <p class="logro-xp" style="color: black;">XP: 100</p>
+                </div>
+                <button class="btn-completar" onclick="completarLogro(3, 100)">Completar</button>
+            </li>
+            <li class="logro-item">
+                <div>
+                    <span class="logro-nombre" style="color: black;">💧 Hidratación Perfecta</span>
+                    <p class="logro-descripcion" style="color: black;">Cumple tu objetivo de hidratación diaria durante 10 días.</p>
+                    <p class="logro-xp" style="color: black;">XP: 150</p>
+                </div>
+                <button class="btn-completar" onclick="completarLogro(4, 150)">Completar</button>
+            </li>
+            <li class="logro-item">
+                <div>
+                    <span class="logro-nombre" style="color: black;">🏅 Desafío Superado</span>
+                    <p class="logro-descripcion" style="color: black;">Completa un reto especial de la plataforma (por ejemplo, “Semana sin azúcar añadida”).</p>
+                    <p class="logro-xp" style="color: black;">XP: 300</p>
+                </div>
+                <button class="btn-completar" onclick="completarLogro(5, 300)">Completar</button>
+            </li>
+        </ul>
+    </main>
+    <script src="../static/js/logros.js"></script>
+</body>
+</html>
